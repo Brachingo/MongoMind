@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MongoMind</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --border:      #C5DDD5;
+      --green-dark:  #00684A;
+      --green-mid:   #13AA52;
+      --text:        #1A2E24;
+      --muted:       #5A7A6A;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: #fefefe;
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      background: #fefefe;
+      border-bottom: 2px solid #D4EBE0;
+      padding: 1.25rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    header img.logo { height: 62px; }
+    header .tagline { font-size: 0.95rem; color: #3A7A5A; }
+
+    /* ── Main ───────────────────────────────────────── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* ── Search ─────────────────────────────────────── */
+    .search-row { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.8rem 1.1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #fefefe;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.18s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    input[type="text"]:focus { border-color: var(--green-mid); }
+    input[type="text"]::placeholder { color: #9ABFB0; }
+
+    #btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.8rem 1.6rem; border-radius: 8px; border: none;
+      background: var(--green-dark); color: #fff;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.18s; white-space: nowrap;
+    }
+    #btn:hover:not(:disabled) { background: var(--green-mid); }
+    #btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block; width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #status {
+      font-size: 0.85rem; color: var(--muted);
+      margin-bottom: 1.25rem; min-height: 1.3rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    /* ── Error ──────────────────────────────────────── */
+    .error-box {
+      background: #FFF0F0; border: 1px solid #E08080;
+      border-radius: 8px; padding: 0.9rem 1.1rem;
+      color: #8B2020; margin-bottom: 1.5rem; font-size: 0.9rem;
+    }
+
+    /* ── Section label ──────────────────────────────── */
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.55rem;
+    }
+    .section-label span { color: var(--green-mid); }
+
+    /* ── MQL tree ───────────────────────────────────── */
+    .mql-section { margin-bottom: 2rem; }
+
+    #mql-tree {
+      background: #F4FAF7;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green-dark);
+      border-radius: 8px;
+      padding: 0.9rem 1.2rem;
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.75;
+      overflow-x: auto;
+    }
+
+    .jv-brace  { color: #374151; font-weight: 600; }
+    .jv-key    { color: var(--green-dark); font-weight: 600; }
+    .jv-op     { color: #7C3AED; font-weight: 600; }
+    .jv-str    { color: #B45309; }
+    .jv-num    { color: #1D4ED8; }
+    .jv-bool   { color: #059669; }
+    .jv-null   { color: #9CA3AF; font-style: italic; }
+
+    .jv-block {
+      margin-left: 1.4rem;
+      border-left: 1.5px solid #C5DDD5;
+      padding-left: 0.7rem;
+    }
+
+    .jv-toggle {
+      cursor: pointer; user-select: none;
+      display: inline-flex; align-items: center; gap: 0.25rem;
+    }
+    .jv-toggle::before {
+      content: '▾';
+      font-size: 0.7rem; color: var(--muted);
+      transition: transform 0.15s;
+    }
+    .jv-toggle.collapsed::before { transform: rotate(-90deg); }
+    .jv-toggle.collapsed + .jv-block { display: none; }
+    .jv-hint { color: var(--muted); font-size: 0.77rem; }
+
+    /* ── Results table ──────────────────────────────── */
+    .results-section { margin-bottom: 2rem; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    th {
+      background: #EDF5F1; color: var(--green-dark);
+      font-weight: 600; text-align: left;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.5rem 0.85rem;
+      border-bottom: 1px solid #EAF3EE;
+      vertical-align: top;
+      max-width: 260px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #F4FAF7; }
+
+    .no-results { color: var(--muted); font-style: italic; padding: 0.75rem; display: block; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img class="logo" src="/static/MongoMind_logo.png" alt="MongoMind" />
+    <div class="tagline">Asistente de Inteligencia NoSQL</div>
+  </header>
+
+  <main>
+    <div class="search-row">
+      <input id="question" type="text"
+             placeholder="¿Cuáles son las películas de Scorsese con mejor rating IMDB?"
+             autocomplete="off" />
+      <button id="btn" onclick="runQuery()">
+        <span id="btn-icon">&#9654;</span>
+        <span id="btn-label">Consultar</span>
+      </button>
+    </div>
+
+    <div id="status" class="hidden"></div>
+    <div id="error-box" class="error-box hidden"></div>
+
+    <div id="mql-section" class="mql-section hidden">
+      <div class="section-label">MQL generado &mdash; colección: <span id="collection-name"></span></div>
+      <div id="mql-tree"></div>
+    </div>
+
+    <div id="results-section" class="results-section hidden">
+      <div class="section-label" id="results-label">Resultados</div>
+      <div class="table-wrap">
+        <table>
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const input = document.getElementById('question');
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(); });
+
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function setError(msg) {
+      const el = document.getElementById('error-box');
+      msg ? (el.textContent = msg, el.classList.remove('hidden'))
+          : el.classList.add('hidden');
+    }
+
+    function setBusy(busy) {
+      document.getElementById('btn').disabled = busy;
+      if (busy) {
+        document.getElementById('btn-icon').outerHTML =
+          '<span id="btn-icon" class="spinner"></span>';
+        document.getElementById('btn-label').textContent = 'Procesando…';
+        const s = document.getElementById('status');
+        s.textContent = 'Generando consulta MQL…';
+        s.classList.remove('hidden');
+      } else {
+        document.getElementById('btn-icon').outerHTML =
+          '<span id="btn-icon">&#9654;</span>';
+        document.getElementById('btn-label').textContent = 'Consultar';
+        document.getElementById('status').classList.add('hidden');
+      }
+    }
+
+    async function runQuery() {
+      const question = input.value.trim();
+      if (!question) return;
+
+      setBusy(true);
+      setError(null);
+      hide('mql-section');
+      hide('results-section');
+
+      try {
+        const res = await fetch('/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        if (data.error) {
+          setError(data.error);
+        } else {
+          document.getElementById('collection-name').textContent = data.collection;
+          renderMQLTree(JSON.parse(data.mql));
+          show('mql-section');
+          renderTable(data.results);
+          show('results-section');
+        }
+      } catch (err) {
+        setError('Error de conexión: ' + err.message);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    /* ── MQL nested tree ────────────────────────────── */
+
+    function jvValue(v) {
+      if (v === null)             return '<span class="jv-null">null</span>';
+      if (typeof v === 'boolean') return '<span class="jv-bool">' + v + '</span>';
+      if (typeof v === 'number')  return '<span class="jv-num">'  + v + '</span>';
+      if (typeof v === 'string')  return '<span class="jv-str">"' + esc(v) + '"</span>';
+      if (Array.isArray(v))       return jvArray(v);
+      return jvObject(v);
+    }
+
+    function jvKey(k) {
+      const cls = k.startsWith('$') ? 'jv-op' : 'jv-key';
+      return '<span class="' + cls + '">"' + esc(k) + '"</span>: ';
+    }
+
+    function jvObject(obj) {
+      const entries = Object.entries(obj);
+      if (!entries.length) return '<span class="jv-brace">{}</span>';
+      const hint = entries.slice(0,2).map(([k]) => '"' + esc(k) + '"').join(', ')
+                 + (entries.length > 2 ? ', …' : '');
+      const rows = entries.map(([k, v]) =>
+        '<div>' + jvKey(k) + jvValue(v) + '</div>'
+      ).join('');
+      return '<span class="jv-brace">{</span>'
+           + '<span class="jv-toggle" onclick="this.classList.toggle(\'collapsed\')">'
+           +   '<span class="jv-hint"> ' + hint + ' </span>'
+           + '</span>'
+           + '<div class="jv-block">' + rows + '</div>'
+           + '<span class="jv-brace">}</span>';
+    }
+
+    function jvArray(arr) {
+      if (!arr.length) return '<span class="jv-brace">[]</span>';
+      const hint = arr.length + ' elemento' + (arr.length !== 1 ? 's' : '');
+      const items = arr.map((v, i) =>
+        '<div>' + jvValue(v) + (i < arr.length - 1 ? ',' : '') + '</div>'
+      ).join('');
+      return '<span class="jv-brace">[</span>'
+           + '<span class="jv-toggle" onclick="this.classList.toggle(\'collapsed\')">'
+           +   '<span class="jv-hint"> ' + hint + ' </span>'
+           + '</span>'
+           + '<div class="jv-block">' + items + '</div>'
+           + '<span class="jv-brace">]</span>';
+    }
+
+    function renderMQLTree(mql) {
+      document.getElementById('mql-tree').innerHTML = jvValue(mql);
+    }
+
+    /* ── Results flat table ─────────────────────────── */
+
+    function flattenDoc(doc, prefix) {
+      prefix = prefix || '';
+      const out = {};
+      for (const [k, v] of Object.entries(doc)) {
+        const key = prefix ? prefix + '.' + k : k;
+        if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+          Object.assign(out, flattenDoc(v, key));
+        } else {
+          out[key] = v;
+        }
+      }
+      return out;
+    }
+
+    function cellText(v) {
+      if (v === undefined || v === null) return '';
+      if (Array.isArray(v)) return v.join(', ');
+      return String(v);
+    }
+
+    function renderTable(docs) {
+      const head  = document.getElementById('table-head');
+      const body  = document.getElementById('table-body');
+      const label = document.getElementById('results-label');
+      head.innerHTML = '';
+      body.innerHTML = '';
+
+      if (!docs || !docs.length) {
+        body.innerHTML = '<tr><td><span class="no-results">Sin resultados.</span></td></tr>';
+        label.textContent = 'Resultados (0)';
+        return;
+      }
+
+      const flat = docs.map(d => flattenDoc(d));
+      const cols = [...new Set(flat.flatMap(r => Object.keys(r)))];
+
+      head.innerHTML = '<tr>' + cols.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>';
+      body.innerHTML = flat.map(row =>
+        '<tr>' + cols.map(c => {
+          const t = cellText(row[c]);
+          return '<td title="' + esc(t) + '">' + esc(t) + '</td>';
+        }).join('') + '</tr>'
+      ).join('');
+
+      label.textContent = 'Resultados (' + docs.length + ')';
+    }
+  </script>
+
+</body>
+</html>
