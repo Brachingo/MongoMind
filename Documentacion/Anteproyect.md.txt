@@ -1,0 +1,176 @@
+### Anteproyecto de Trabajo de Final de Máster
+
+# Diseño e implementación de un asistente
+
+# conversacional para el soporte a analistas de
+
+# datos en entornos MongoDB
+
+### Autor: Lucas Silva Pérez
+
+### Director: Alejandro Martín
+
+### Identificador: 6.
+
+### Marzo 2026
+
+
+## Índice
+
+- 1. Introducción y motivación
+- 2. Objetivos
+- 3. Estado del arte
+   - 3.1. Asistentes conversacionales basados en LLM
+   - 3.2. Consulta en lenguaje natural sobre bases de datos NoSQL
+   - 3.3. Herramientas de soporte al analista de datos
+- 4. Metodología
+   - 4.1. Diseño del sistema
+   - 4.2. Implementación
+   - 4.3. Evaluación
+
+
+## 1. Introducción y motivación
+
+MongoDB es un sistema de gestión de bases de datos no relacionales, perteneciente
+a la categoría conocida como NoSQL. Son sistemas de almacenamiento que no utilizan
+tablas, filas ni esquemas fijos (como si lo hacen las bases de datos basadas en SQL), per-
+mitiendo gestionar grandes volúmenes de datos no estructurados o semi-estructurados
+con alta escalabilidad y flexibilidad. Utilizan modelos como documentos (JSON), clave-
+valor, grafos o columnas anchas, ideales para aplicaciones modernas, redes sociales y
+Big Data. MongoDB Query Language (MQL) es el lenguaje utilizado para consultar
+y manipular datos en MongoDB. Permite realizar operaciones como buscar, insertar,
+actualizar o eliminar documentos dentro de una base de datos. A diferencia de len-
+guajes como SQL, que trabajan con tablas y filas, MQL opera sobre documentos en
+formato similar a JSON organizados en colecciones. Las consultas se expresan mediante
+estructuras tipo objeto, usando pares clave-valor y operadores específicos.
+Por ejemplo, una consulta en MQL para encontrar usuarios de 25 años podría
+escribirse así:
+
+db.users.find({ age: 25 })
+
+El lenguaje también incluye operadores para condiciones más complejas, como com-
+paraciones (gt,lt), lógica (and,or) o filtrado por campos dentro de documentos anida-
+dos. Esto permite realizar consultas flexibles sobre datos con estructura variable, una
+característica típica de las bases de datos NoSQL.
+En general, MongoDB sigue siendo un sistema muy usado, pero muchos analistas
+no dominan el lenguage MQL, aquí es donde entra nuestro proyecto, ya que los LLMs
+han demostrado una gran capacidad para generar código, la combinación de un Large
+Language Model (LLM) para MQL nos abre la oportunidad para este TFM.
+
+## 2. Objetivos
+
+La idea central es construir un chatbot o asistente al que un analista de datos le
+pueda hacer preguntas en español (o inglés) y el sistema las traduzca automáticamente
+a consultas MongoDB, las ejecute, y devuelva los resultados de forma comprensible. Por
+ejemplo: el analista escribe "¿cuántos pedidos se hicieron en enero con importe superior
+a 500€?τ el sistema genera y ofrece la query correspondiente sin que el analista tenga
+que ser un experto MQL. El núcleo técnico gira en torno a un LLM (GPT-4, Claude,
+Llama, etc.) al que le das contexto sobre el esquema de tu base de datos y le pides
+que genere la query. Encima de eso construyes una capa conversacional que mantiene
+el hilo del diálogo, gestiona errores y presenta los resultados.
+
+
+## 3. Estado del arte
+
+### 3.1. Asistentes conversacionales basados en LLM
+
+En los últimos años, los LLMs han demostrado una gran capacidad para comprender
+lenguaje natural y generar texto estructurado, incluyendo código. Modelos como GPT,
+Claude o LLaMA han sido utilizados para construir asistentes conversacionales capaces
+de responder preguntas, generar documentación o ayudar en tareas técnicas.
+Una de las aplicaciones más relevantes de estos modelos es la generación automática
+de código a partir de descripciones en lenguaje natural. Diversos trabajos han mostrado
+que los LLM pueden producir consultas a bases de datos, scripts o fragmentos de pro-
+gramas si se les proporciona suficiente contexto sobre el problema. Esto ha impulsado
+el desarrollo de asistentes que ayudan a desarrolladores y analistas a interactuar con
+sistemas complejos mediante lenguaje natural.
+Además, la aparición de marcos de desarrollo para aplicaciones basadas en LLM,
+como LangChain o LlamaIndex, ha facilitado la creación de agentes conversacionales
+capaces de conectarse a bases de datos, ejecutar consultas y procesar resultados. Estas
+herramientas permiten integrar modelos de lenguaje con fuentes de datos externas, lo
+que abre la puerta a sistemas de consulta automatizada.
+
+### 3.2. Consulta en lenguaje natural sobre bases de datos NoSQL
+
+La consulta de bases de datos mediante lenguaje natural es un área de investigación
+que existe desde hace décadas, tradicionalmente centrada en bases de datos relacionales
+y en la traducción automática de preguntas a SQL. Con la aparición de los LLM, esta
+línea de trabajo ha experimentado un nuevo impulso, ya que los modelos actuales son
+capaces de generar consultas de forma mucho más flexible que los enfoques clásicos
+basados en reglas.
+En el caso de las bases de datos NoSQL, como MongoDB, el problema presenta
+algunas particularidades. A diferencia de SQL, donde el esquema suele estar bien de-
+finido, los sistemas NoSQL permiten estructuras de datos más flexibles. Esto puede
+dificultar la generación automática de consultas, ya que el sistema necesita conocer o
+inferir la estructura de los documentos almacenados.
+Aun así, algunos trabajos recientes han explorado el uso de LLM para generar
+consultas en lenguajes como MQL a partir de preguntas en lenguaje natural. Estos
+enfoques suelen basarse en proporcionar al modelo información sobre el esquema de la
+base de datos o ejemplos de consultas para guiar la generación.
+
+
+### 3.3. Herramientas de soporte al analista de datos
+
+En el ámbito profesional existen diversas herramientas orientadas a facilitar el tra-
+bajo de los analistas de datos. Plataformas de business intelligence y herramientas
+de exploración de datos permiten construir consultas, visualizar resultados y generar
+informes sin necesidad de programar directamente.
+Más recientemente, algunos proveedores han comenzado a integrar capacidades de
+inteligencia artificial en sus productos, permitiendo a los usuarios formular preguntas
+en lenguaje natural sobre los datos. Estos sistemas suelen traducir la pregunta a una
+consulta interna, ejecutarla y mostrar los resultados en forma de tablas o visualizacio-
+nes.
+Sin embargo, muchas de estas soluciones están principalmente orientadas a bases de
+datos relacionales o a entornos muy controlados. En el caso de bases de datos NoSQL
+como MongoDB, todavía existe margen para desarrollar asistentes que ayuden a los
+analistas a formular consultas complejas sin necesidad de dominar completamente el
+lenguaje MQL. En este contexto, el uso de LLM como intermediarios entre el usuario
+y la base de datos representa una línea de trabajo prometedora.
+
+## 4. Metodología
+
+El desarrollo del proyecto seguirá un enfoque iterativo e incremental, organizado
+en tres fases principales: diseño del sistema, implementación y evaluación. Esta apro-
+ximación permite validar decisiones técnicas de forma temprana y ajustar el diseño en
+función de los resultados obtenidos en cada iteración.
+
+### 4.1. Diseño del sistema
+
+La arquitectura del asistente se articula en torno a tres componentes principales. El
+primero es el módulo de comprensión del lenguaje natural, responsable de interpretar
+la consulta del usuario y extraer su intención. El segundo es el módulo de generación
+de queries, que traduce dicha intención a una consulta válida en MQL, haciendo uso
+de un LLM. El tercero es la interfaz conversacional web, a través de la cual el usuario
+introduce sus preguntas y recibe los resultados. La comunicación entre el LLM y Mon-
+goDB se gestionará mediante un mecanismo de prompting estructurado que incluirá,
+en cada petición, el esquema de la colección consultada y un conjunto de ejemplos
+representativos. Esta técnica, conocida como few-shot prompting, ha demostrado mejo-
+rar significativamente la precisión en tareas de generación de código estructurado. En
+cuanto a la elección del modelo de lenguaje, se realizará un análisis comparativo de
+las opciones disponibles (modelos accesibles vía API y modelos ejecutables en local)
+
+
+atendiendo a criterios de precisión, coste, latencia y privacidad de los datos. La decisión
+final se tomará al inicio de la fase de implementación
+
+### 4.2. Implementación
+
+El sistema se desarrollará en Python, con la idea de crear una interfaz web cons-
+truida con un framework ligero. La implementación se dividirá en dos etapas. En la
+primera se construirá un prototipo funcional sobre un esquema de base de datos fijo,
+con el objetivo de validar el flujo completo desde la entrada del usuario hasta la ejecu-
+ción de la query y la presentación del resultado. En la segunda etapa se generalizará
+el sistema para que sea capaz de inferir el esquema de cualquier colección MongoDB
+de forma dinámica, sin requerir configuración manual. Respecto al conjunto de datos,
+se evaluará el uso de un dataset público de referencia o, en su defecto, se diseñará
+un dataset sintético que cubra los patrones de consulta más habituales en entornos
+analíticos.
+
+### 4.3. Evaluación
+
+La evaluación del sistema se realizará con corrección funcional, se construirá un
+benchmark de consultas en lenguaje natural emparejadas con su query MongoDB es-
+perada, y se medirá el porcentaje de queries generadas que producen el resultado co-
+rrecto.
+
+

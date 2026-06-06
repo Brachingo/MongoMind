@@ -1,6 +1,7 @@
 # Claude
 .claude/
 CLAUDE.md
+CLAUDE.local.md
 
 # Python
 __pycache__/
@@ -50,4 +51,7 @@ Thumbs.db
 
 #Files
 PERMISO_PUBLICACION_TFM_LSilva.pdf
+
+#
+TXTs/
 

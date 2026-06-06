@@ -1,0 +1,92 @@
+# Descripción del trabajo
+
+## Proyectos de Deep Learning
+
+## Máster en Deep Learning
+
+## INSTRUCCIONES
+
+```
+▹ El trabajo consiste en una descripción detalla de un proyecto software a
+realizar y que integra modelos de Deep Learning
+▹ El objetivo es que os baséis en el trabajo que estáis desarrollando para vuestro
+TFM
+```
+## APARTADOS A INCLUIR
+
+**1. Introducción**
+    a. Título del proyecto
+    b. Problema que se quiere resolver
+    c. Contexto o motivación: ¿Por qué es relevante?
+    d. Objetivos del proyecto: Qué se espera lograr con el modelo.
+**2. Estado del arte**
+    a. Breve descripción de enfoques ya utilizados en el estado del arte (por
+       ejemplo, haciendo una búsqueda en Google Scholar)
+**3. Datos**
+    a. Fuente de los datos: Datasets públicos, APIs, web scraping, sensores,
+       etc.
+    b. Formato de los datos: CSV, JSON, imágenes, audio, texto...
+    c. Volumen esperado: Tamaño aproximado en número de muestras y
+       tamaño en disco.
+    d. Necesidad de datos adicionales: ¿Qué datos faltan y cómo podrían
+       obtenerse?
+    e. Preprocesamiento necesario: Limpieza, normalización,
+       anonimización...
+    f. Evaluación de la calidad de los datos
+    g. Fuentes adicionales de extracción de datos en caso de que sean
+       insuficientes
+**4. Enfoque y Modelado**
+
+
+## 2
+
+```
+a. Tipos de modelos a evaluar: ¿Redes convolucionales, transformers,
+autoencoders, etc.?
+b. Cómo se justificaría el enfoque elegido
+c. Modelos base: ¿Usarán modelos preentrenados (transfer learning) o
+entrenarán desde cero?
+d. Frameworks y librerías: PyTorch, TensorFlow, Hugging Face, etc.
+```
+**5. Entrenamiento**
+    a. División del dataset: Entrenamiento / validación / test.
+    b. Métricas de evaluación: Accuracy, F1-score, BLEU, MAE, etc.
+    c. Optimización: Algoritmos de optimización, learning rate,
+       regularización...
+    d. Hardware necesario: GPU, TPU, o CPU suficiente.
+    e. Uso de MLOps / Experiment Tracking: MLflow, Weights & Biases...
+**6. Evaluación**
+    a. Resultados obtenidos en validación/test
+    b. Curvas de aprendizaje / overfitting
+    c. Comparación con métodos base o clásicos
+    d. Cómo se afrontarían pruebas en un entorno real
+    e. Cómo definir si el rendimiento es válido para lanzar a entorno real
+**7. Aspectos de ciberseguridad**
+    a. Ciberseguridad y Consideraciones Éticas
+    b. Posibles ataques al modelo: Evasion (adversarial), poisoning, model
+       stealing...
+    c. Medidas de protección: Regularización, robustez, validación de
+       entrada...
+    d. Privacidad de los datos: Uso de datos personales, anonimización...
+    e. Sesgos y equidad: Cómo detectarlos y mitigarlos.
+**8. Despliegue**
+    a. Plataforma de despliegue: Cloud (AWS, GCP, Azure) o local.
+    b. Formato del modelo final
+    c. Contenedores y orquestación: Docker, Kubernetes, etc.
+    d. Monitorización en producción: métricas, logs, alertas.
+**9. Costes y sostenibilidad**
+    a. Estimación de costes de entrenamiento y despliegue
+    b. Uso eficiente de recursos
+
+
+## 3
+
+## ENTREGA
+
+```
+▹ La entrega será a través de Moodle mediante una entrega habilitada para
+ello
+▹ Se entregará un documento PDF con los puntos anteriores.
+▹ Extensión máxima: 20 páginas.
+```
+
