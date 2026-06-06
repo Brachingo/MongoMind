@@ -1,7 +1,6 @@
 <p align="center">
   <img src="images/MongoMind_logo.png" alt="MongoMind logo" width="360"/>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="images/mongoDB_logo.png" alt="MongoDB logo" width="260"/>
 </p>
 
 # MongoMind — Asistente de Inteligencia NoSQL
