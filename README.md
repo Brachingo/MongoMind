@@ -47,8 +47,7 @@ Pregunta en lenguaje natural
 
 | Capa | Tecnología |
 |---|---|
-| LLM | Claude Sonnet 4.6 / GPT-4o |
-| Orquestación | LangChain |
+| Modelo NL→MQL | [Chirayu/nl2mongo](https://huggingface.co/Chirayu/nl2mongo) (CodeT5+ 220M, local) |
 | Base de datos | MongoDB Atlas (sample_mflix) |
 | Backend | FastAPI + Uvicorn |
 | Dataset de evaluación | `data/benchmark/` |
@@ -59,13 +58,21 @@ Pregunta en lenguaje natural
 conda create -n tfm python=3.11
 conda activate tfm
 pip install -r requirements.txt
-cp .env.example .env   # añadir ANTHROPIC_API_KEY y MONGODB_URI
+cp .env.example .env   # añadir MONGODB_URI
 ```
+
+> El modelo NL→MQL se descarga automáticamente de HuggingFace la primera vez (~400 MB, queda cacheado).
 
 ## Uso
 
 ```bash
-python src/web/app.py   # inicia la interfaz en http://localhost:8000
+# Interfaz web
+python src/web/app.py   # http://localhost:8000
+
+# Pipeline desde Python
+python
+>>> import src.core as mm
+>>> mm.query("find top 5 movies with highest imdb rating")
 ```
 
 ## Estructura
@@ -81,13 +88,21 @@ data/
 tests/
 ```
 
+## Tests
+
+```bash
+pytest tests/test_db_connector.py tests/test_mql_generator.py -v   # 22 tests
+python tests/smoke_test.py                                          # pipeline completo
+```
+
 ## Estado actual
 
 - [x] Entorno y conexión a MongoDB Atlas verificada
 - [x] `db_connector.py` — find y aggregate con límite de seguridad
 - [x] Esquema `movies.json` y plantilla few-shot `movies.txt` (12 ejemplos verificados)
-- [ ] `mql_generator.py` — generación MQL con LLM
-- [ ] `nlp.py` — detección de colección
+- [x] `mql_generator.py` — generación MQL con nl2mongo (local, sin API key)
+- [x] `nlp.py` — detección de colección por palabras clave
+- [x] Pipeline end-to-end `nlp → mql_generator → db_connector`
 - [ ] Interfaz web FastAPI
 - [ ] Inferencia dinámica de esquema
 - [ ] Benchmark y evaluación comparativa de modelos
