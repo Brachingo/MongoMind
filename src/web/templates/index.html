@@ -92,8 +92,14 @@
     }
     .section-label span { color: var(--green-mid); }
 
-    /* ── MQL tree ───────────────────────────────────── */
+    /* ── MQL block ──────────────────────────────────── */
     .mql-section { margin-bottom: 2rem; }
+
+    .mql-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.55rem;
+    }
 
     #mql-tree {
       background: #F4FAF7;
@@ -105,34 +111,21 @@
       font-size: 0.82rem;
       line-height: 1.75;
       overflow-x: auto;
+      white-space: pre;
+      margin: 0;
     }
 
-    .jv-brace  { color: #374151; font-weight: 600; }
-    .jv-key    { color: var(--green-dark); font-weight: 600; }
-    .jv-op     { color: #7C3AED; font-weight: 600; }
-    .jv-str    { color: #B45309; }
-    .jv-num    { color: #1D4ED8; }
-    .jv-bool   { color: #059669; }
-    .jv-null   { color: #9CA3AF; font-style: italic; }
-
-    .jv-block {
-      margin-left: 1.4rem;
-      border-left: 1.5px solid #C5DDD5;
-      padding-left: 0.7rem;
+    #btn-copy {
+      display: flex; align-items: center; gap: 0.35rem;
+      padding: 0.3rem 0.75rem; border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: #fff; color: var(--green-dark);
+      font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
     }
-
-    .jv-toggle {
-      cursor: pointer; user-select: none;
-      display: inline-flex; align-items: center; gap: 0.25rem;
-    }
-    .jv-toggle::before {
-      content: '▾';
-      font-size: 0.7rem; color: var(--muted);
-      transition: transform 0.15s;
-    }
-    .jv-toggle.collapsed::before { transform: rotate(-90deg); }
-    .jv-toggle.collapsed + .jv-block { display: none; }
-    .jv-hint { color: var(--muted); font-size: 0.77rem; }
+    #btn-copy:hover { background: #EDF5F1; border-color: var(--green-mid); }
+    #btn-copy.copied { color: var(--green-mid); border-color: var(--green-mid); }
 
     /* ── Results table ──────────────────────────────── */
     .results-section { margin-bottom: 2rem; }
@@ -187,8 +180,11 @@
     <div id="error-box" class="error-box hidden"></div>
 
     <div id="mql-section" class="mql-section hidden">
-      <div class="section-label">MQL generado &mdash; colección: <span id="collection-name"></span></div>
-      <div id="mql-tree"></div>
+      <div class="mql-header">
+        <div class="section-label">MQL generado &mdash; colección: <span id="collection-name"></span></div>
+        <button id="btn-copy" onclick="copyMQL()">&#10697; Copiar</button>
+      </div>
+      <pre id="mql-tree"></pre>
     </div>
 
     <div id="results-section" class="results-section hidden">
@@ -271,54 +267,26 @@
       }
     }
 
-    /* ── MQL nested tree ────────────────────────────── */
+    /* ── MQL flat block ─────────────────────────────── */
 
-    function jvValue(v) {
-      if (v === null)             return '<span class="jv-null">null</span>';
-      if (typeof v === 'boolean') return '<span class="jv-bool">' + v + '</span>';
-      if (typeof v === 'number')  return '<span class="jv-num">'  + v + '</span>';
-      if (typeof v === 'string')  return '<span class="jv-str">"' + esc(v) + '"</span>';
-      if (Array.isArray(v))       return jvArray(v);
-      return jvObject(v);
-    }
-
-    function jvKey(k) {
-      const cls = k.startsWith('$') ? 'jv-op' : 'jv-key';
-      return '<span class="' + cls + '">"' + esc(k) + '"</span>: ';
-    }
-
-    function jvObject(obj) {
-      const entries = Object.entries(obj);
-      if (!entries.length) return '<span class="jv-brace">{}</span>';
-      const hint = entries.slice(0,2).map(([k]) => '"' + esc(k) + '"').join(', ')
-                 + (entries.length > 2 ? ', …' : '');
-      const rows = entries.map(([k, v]) =>
-        '<div>' + jvKey(k) + jvValue(v) + '</div>'
-      ).join('');
-      return '<span class="jv-brace">{</span>'
-           + '<span class="jv-toggle" onclick="this.classList.toggle(\'collapsed\')">'
-           +   '<span class="jv-hint"> ' + hint + ' </span>'
-           + '</span>'
-           + '<div class="jv-block">' + rows + '</div>'
-           + '<span class="jv-brace">}</span>';
-    }
-
-    function jvArray(arr) {
-      if (!arr.length) return '<span class="jv-brace">[]</span>';
-      const hint = arr.length + ' elemento' + (arr.length !== 1 ? 's' : '');
-      const items = arr.map((v, i) =>
-        '<div>' + jvValue(v) + (i < arr.length - 1 ? ',' : '') + '</div>'
-      ).join('');
-      return '<span class="jv-brace">[</span>'
-           + '<span class="jv-toggle" onclick="this.classList.toggle(\'collapsed\')">'
-           +   '<span class="jv-hint"> ' + hint + ' </span>'
-           + '</span>'
-           + '<div class="jv-block">' + items + '</div>'
-           + '<span class="jv-brace">]</span>';
-    }
+    let _currentMQL = '';
 
     function renderMQLTree(mql) {
-      document.getElementById('mql-tree').innerHTML = jvValue(mql);
+      _currentMQL = JSON.stringify(mql, null, 2);
+      document.getElementById('mql-tree').textContent = _currentMQL;
+    }
+
+    function copyMQL() {
+      if (!_currentMQL) return;
+      navigator.clipboard.writeText(_currentMQL).then(() => {
+        const btn = document.getElementById('btn-copy');
+        btn.classList.add('copied');
+        btn.textContent = '✓ Copiado';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '&#10697; Copiar';
+        }, 1800);
+      });
     }
 
     /* ── Results flat table ─────────────────────────── */

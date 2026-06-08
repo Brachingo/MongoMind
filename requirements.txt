@@ -1,8 +1,5 @@
-# Modelo local NL→MQL (Chirayu/nl2mongo — CodeT5+ 220M)
-transformers>=4.40.0,<5.0.0
-torch>=2.0.0
-sentencepiece>=0.2.0
-accelerate>=0.29.0
+# Modelo local NL→MQL (Ollama — llama3.2 por defecto)
+ollama>=0.3.0
 
 # Base de datos
 pymongo>=4.7.0

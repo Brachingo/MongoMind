@@ -103,6 +103,6 @@ python tests/smoke_test.py                                          # pipeline c
 - [x] `mql_generator.py` — generación MQL con nl2mongo (local, sin API key)
 - [x] `nlp.py` — detección de colección por palabras clave
 - [x] Pipeline end-to-end `nlp → mql_generator → db_connector`
-- [ ] Interfaz web FastAPI
+- [x] Interfaz web FastAPI
 - [ ] Inferencia dinámica de esquema
 - [ ] Benchmark y evaluación comparativa de modelos
