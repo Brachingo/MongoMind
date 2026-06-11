@@ -85,6 +85,25 @@
       color: #8B2020; margin-bottom: 1.5rem; font-size: 0.9rem;
     }
 
+    /* ── Info (e.g. 0 results) ──────────────────────── */
+    .info-box {
+      background: #FFF8E8; border: 1px solid #E8C878;
+      border-radius: 8px; padding: 0.9rem 1.1rem;
+      color: #7A5A10; margin-bottom: 1.5rem; font-size: 0.9rem;
+    }
+
+    /* ── Reset conversation ─────────────────────────── */
+    #btn-reset {
+      margin-left: auto;
+      padding: 0.45rem 0.9rem; border-radius: 7px;
+      border: 1.5px solid var(--border);
+      background: #fff; color: var(--green-dark);
+      font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    #btn-reset:hover { background: #EDF5F1; border-color: var(--green-mid); }
+
     /* ── Section label ──────────────────────────────── */
     .section-label {
       font-size: 0.7rem; font-weight: 700; color: var(--muted);
@@ -163,6 +182,7 @@
   <header>
     <img class="logo" src="/static/MongoMind_logo.png" alt="MongoMind" />
     <div class="tagline">Asistente de Inteligencia NoSQL</div>
+    <button id="btn-reset" onclick="resetConversation()" title="Olvidar el contexto de la conversación">&#8635; Nueva conversación</button>
   </header>
 
   <main>
@@ -178,6 +198,7 @@
 
     <div id="status" class="hidden"></div>
     <div id="error-box" class="error-box hidden"></div>
+    <div id="info-box" class="info-box hidden"></div>
 
     <div id="mql-section" class="mql-section hidden">
       <div class="mql-header">
@@ -216,6 +237,23 @@
           : el.classList.add('hidden');
     }
 
+    function setInfo(msg) {
+      const el = document.getElementById('info-box');
+      msg ? (el.textContent = msg, el.classList.remove('hidden'))
+          : el.classList.add('hidden');
+    }
+
+    async function resetConversation() {
+      try { await fetch('/reset', { method: 'POST' }); } catch (e) {}
+      setError(null); setInfo(null);
+      hide('mql-section'); hide('results-section');
+      input.value = '';
+      const s = document.getElementById('status');
+      s.textContent = 'Conversación reiniciada — el contexto anterior se ha olvidado.';
+      s.classList.remove('hidden');
+      setTimeout(() => s.classList.add('hidden'), 2500);
+    }
+
     function setBusy(busy) {
       document.getElementById('btn').disabled = busy;
       if (busy) {
@@ -239,6 +277,7 @@
 
       setBusy(true);
       setError(null);
+      setInfo(null);
       hide('mql-section');
       hide('results-section');
 
@@ -248,7 +287,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question }),
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
 
         if (data.error) {
@@ -259,6 +297,7 @@
           show('mql-section');
           renderTable(data.results);
           show('results-section');
+          if (data.message) setInfo(data.message);
         }
       } catch (err) {
         setError('Error de conexión: ' + err.message);
@@ -271,8 +310,41 @@
 
     let _currentMQL = '';
 
+    // Compact one-line serializer with spaces after ':' and ',' (JSON-style).
+    function compactJSON(v) {
+      if (v === null) return 'null';
+      if (Array.isArray(v)) return '[' + v.map(compactJSON).join(', ') + ']';
+      if (typeof v === 'object') {
+        return '{' + Object.entries(v)
+          .map(([k, val]) => JSON.stringify(k) + ': ' + compactJSON(val))
+          .join(', ') + '}';
+      }
+      return JSON.stringify(v);
+    }
+
+    // Pretty MQL: one pipeline stage (or one filter field) per line, nested
+    // objects kept inline.  e.g.
+    //   [
+    //     {"$match": {"directors": "Christopher Nolan"}},
+    //     {"$project": {"title": 1, "_id": 0}}
+    //   ]
+    function formatMQL(mql) {
+      if (Array.isArray(mql)) {
+        if (!mql.length) return '[]';
+        return '[\n' + mql.map(el => '  ' + compactJSON(el)).join(',\n') + '\n]';
+      }
+      if (mql && typeof mql === 'object') {
+        const keys = Object.keys(mql);
+        if (!keys.length) return '{}';
+        return '{\n' + keys
+          .map(k => '  ' + JSON.stringify(k) + ': ' + compactJSON(mql[k]))
+          .join(',\n') + '\n}';
+      }
+      return compactJSON(mql);
+    }
+
     function renderMQLTree(mql) {
-      _currentMQL = JSON.stringify(mql, null, 2);
+      _currentMQL = formatMQL(mql);
       document.getElementById('mql-tree').textContent = _currentMQL;
     }
 

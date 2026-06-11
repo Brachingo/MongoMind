@@ -47,7 +47,7 @@ Pregunta en lenguaje natural
 
 | Capa | Tecnología |
 |---|---|
-| Modelo NL→MQL | [Chirayu/nl2mongo](https://huggingface.co/Chirayu/nl2mongo) (CodeT5+ 220M, local) |
+| Modelo NL→MQL | Ollama + `llama3.2` (local, sin API key) |
 | Base de datos | MongoDB Atlas (sample_mflix) |
 | Backend | FastAPI + Uvicorn |
 | Dataset de evaluación | `data/benchmark/` |
@@ -61,18 +61,13 @@ pip install -r requirements.txt
 cp .env.example .env   # añadir MONGODB_URI
 ```
 
-> El modelo NL→MQL se descarga automáticamente de HuggingFace la primera vez (~400 MB, queda cacheado).
+> Requiere [Ollama](https://ollama.com) instalado y ejecutándose en `localhost:11434`. Descarga el modelo con `ollama pull llama3.2`.
 
 ## Uso
 
 ```bash
 # Interfaz web
 python src/web/app.py   # http://localhost:8000
-
-# Pipeline desde Python
-python
->>> import src.core as mm
->>> mm.query("find top 5 movies with highest imdb rating")
 ```
 
 ## Estructura
@@ -91,18 +86,24 @@ tests/
 ## Tests
 
 ```bash
-pytest tests/test_db_connector.py tests/test_mql_generator.py -v   # 22 tests
-python tests/smoke_test.py                                          # pipeline completo
+# Tests unitarios (sin Ollama ni Atlas)
+pytest tests/test_mql_generator.py tests/test_schema_inferrer.py -v   # 36 tests
+
+# Tests de integración (requieren Atlas)
+pytest tests/test_db_connector.py -v                                   # 6 tests
+
+# Smoke test end-to-end (requiere Ollama + Atlas)
+python tests/smoke_test.py
 ```
 
 ## Estado actual
 
 - [x] Entorno y conexión a MongoDB Atlas verificada
 - [x] `db_connector.py` — find y aggregate con límite de seguridad
-- [x] Esquema `movies.json` y plantilla few-shot `movies.txt` (12 ejemplos verificados)
-- [x] `mql_generator.py` — generación MQL con nl2mongo (local, sin API key)
+- [x] Esquema `movies.json` y plantilla few-shot `movies.txt` (12 ejemplos)
+- [x] `mql_generator.py` — generación MQL vía Ollama (`llama3.2`, local)
 - [x] `nlp.py` — detección de colección por palabras clave
+- [x] `schema_inferrer.py` — inferencia dinámica de esquema desde documentos reales
 - [x] Pipeline end-to-end `nlp → mql_generator → db_connector`
 - [x] Interfaz web FastAPI
-- [ ] Inferencia dinámica de esquema
 - [ ] Benchmark y evaluación comparativa de modelos

@@ -126,7 +126,31 @@ def _load_template(collection: str) -> str:
     return _template_cache[collection]
 
 
-def _build_messages(question: str, collection: str) -> list[dict]:
+def _format_user_turn(question: str) -> str:
+    """Render a question as the user-turn content the model is trained to expect."""
+    return f"Pregunta: {question}\nQuery:"
+
+
+def history_turns(question: str, query: dict | list) -> list[dict]:
+    """Build the two chat turns (user question + assistant MQL) for one resolved
+    exchange, ready to be replayed as conversational history on the next call."""
+    return [
+        {"role": "user", "content": _format_user_turn(question)},
+        {"role": "assistant", "content": json.dumps(query, ensure_ascii=False)},
+    ]
+
+
+def _build_messages(
+    question: str,
+    collection: str,
+    history: list[dict] | None = None,
+) -> list[dict]:
+    """Build the chat messages for the LLM.
+
+    *history* is an optional list of prior {role, content} turns (alternating
+    user/assistant) inserted between the system prompt and the current question
+    so the model can resolve anaphoric follow-ups ("¿y ordenadas por año?").
+    """
     template = _load_template(collection)
     lines = template.splitlines()
     cutoff = next(
@@ -134,10 +158,12 @@ def _build_messages(question: str, collection: str) -> list[dict]:
         len(lines),
     )
     system_prompt = "\n".join(lines[:cutoff]).strip()
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Pregunta: {question}\nQuery:"},
-    ]
+
+    messages = [{"role": "system", "content": system_prompt}]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": _format_user_turn(question)})
+    return messages
 
 
 def _extract_json(text: str) -> str:
@@ -153,6 +179,26 @@ def _extract_json(text: str) -> str:
     return text
 
 
+# Matches an unquoted object key right after '{' or ',' (JS-style: {size: 5}).
+_UNQUOTED_KEY = re.compile(r'([{,]\s*)([A-Za-z_$][A-Za-z0-9_$.]*)(\s*:)')
+# Matches a trailing comma before a closing } or ].
+_TRAILING_COMMA = re.compile(r',(\s*[}\]])')
+
+
+def _repair_json(text: str) -> str:
+    """Best-effort repair of near-JSON the LLM sometimes emits.
+
+    Fixes the two most common formatting slips seen with local models:
+      - unquoted object keys:  {size: 5}      -> {"size": 5}
+      - trailing commas:       [{...},]       -> [{...}]
+
+    Only structural punctuation is touched; string values are left intact.
+    """
+    text = _UNQUOTED_KEY.sub(r'\1"\2"\3', text)
+    text = _TRAILING_COMMA.sub(r'\1', text)
+    return text
+
+
 def _check_no_writes(query: dict | list) -> None:
     serialized = json.dumps(query)
     for op in _WRITE_OPS:
@@ -160,11 +206,21 @@ def _check_no_writes(query: dict | list) -> None:
             raise ValueError(f"Rejected: write operator '{op}' detected")
 
 
-def generate(question: str, collection: str) -> dict | list:
+def generate(
+    question: str,
+    collection: str,
+    history: list[dict] | None = None,
+) -> dict | list:
     """Translate a natural language question into a PyMongo-compatible MQL query.
 
     Uses an Ollama model (default: llama3.2) running locally at localhost:11434.
     Override the model via the OLLAMA_MODEL env variable.
+
+    Args:
+        question:   The natural language question.
+        collection: Target MongoDB collection.
+        history:    Optional list of prior {role, content} turns (conversational
+                    memory) so follow-up questions can resolve references.
 
     Returns:
         dict  -> use with collection.find()
@@ -175,7 +231,7 @@ def generate(question: str, collection: str) -> dict | list:
     """
     import ollama
 
-    messages = _build_messages(question, collection)
+    messages = _build_messages(question, collection, history)
     response = ollama.chat(
         model=_MODEL,
         messages=messages,
@@ -185,7 +241,11 @@ def generate(question: str, collection: str) -> dict | list:
     json_str = _extract_json(raw)
     try:
         query = json.loads(json_str)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"LLM output is not valid JSON:\n{json_str[:400]}") from exc
+    except json.JSONDecodeError:
+        # Retry once after repairing common LLM formatting slips.
+        try:
+            query = json.loads(_repair_json(json_str))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"LLM output is not valid JSON:\n{json_str[:400]}") from exc
     _check_no_writes(query)
     return query
