@@ -179,6 +179,21 @@
     }
     #btn-reset:hover, #btn-theme:hover { background: var(--btn-soft); border-color: var(--green-mid); }
 
+    /* ── Dataset selector ───────────────────────────── */
+    .dataset-picker { display: flex; align-items: center; gap: 0.4rem; }
+    .dataset-picker label {
+      font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    #dataset {
+      padding: 0.45rem 0.7rem; border-radius: 7px;
+      border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--green-dark);
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    #dataset:hover, #dataset:focus { border-color: var(--green-mid); outline: none; }
+
     /* ── Section label ──────────────────────────────── */
     .section-label {
       font-size: 0.7rem; font-weight: 700; color: var(--muted);
@@ -287,6 +302,14 @@
     <img class="logo" src="/static/MongoMind_logo.png" alt="MongoMind" />
     <div class="tagline">Asistente de Inteligencia NoSQL</div>
     <div class="header-actions">
+      <div class="dataset-picker">
+        <label for="dataset">Dataset</label>
+        <select id="dataset" onchange="onDatasetChange()" title="Base de datos sobre la que consultar">
+          {% for ds in datasets %}
+          <option value="{{ ds.key }}">{{ ds.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <button id="btn-theme" onclick="toggleTheme()" title="Cambiar tema claro/oscuro"></button>
       <button id="btn-reset" onclick="resetConversation()" title="Olvidar el contexto de la conversación">&#8635; Nueva conversación</button>
     </div>
@@ -318,7 +341,14 @@
     const input     = document.getElementById('question');
     const chat      = document.getElementById('chat');
     const chatInner = document.getElementById('chat-inner');
+    const datasetSel = document.getElementById('dataset');
     let busy = false;
+
+    // Restore last chosen dataset across reloads.
+    try {
+      const ds = localStorage.getItem('mm-dataset');
+      if (ds) datasetSel.value = ds;
+    } catch (e) {}
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(); });
 
@@ -402,7 +432,8 @@
 
       const label = document.createElement('div');
       label.className = 'section-label';
-      label.innerHTML = 'MQL generado &mdash; colección: <span>' + esc(data.collection) + '</span>';
+      label.innerHTML = 'MQL generado &mdash; colección: <span>' + esc(data.collection) + '</span>'
+        + (data.dataset ? ' &middot; BD: <span>' + esc(data.dataset) + '</span>' : '');
 
       const mqlText = formatMQL(JSON.parse(data.mql));
       const copyBtn = document.createElement('button');
@@ -461,6 +492,21 @@
       input.focus();
     }
 
+    // Switching dataset starts a fresh conversation (the server also clears the
+    // server-side memory on the next query, since cross-dataset anaphora is invalid).
+    async function onDatasetChange() {
+      try { localStorage.setItem('mm-dataset', datasetSel.value); } catch (e) {}
+      try { await fetch('/reset', { method: 'POST' }); } catch (e) {}
+      const label = datasetSel.options[datasetSel.selectedIndex].text;
+      chatInner.innerHTML =
+        '<div class="empty-state" id="empty-state">' +
+        '<strong>Dataset: ' + esc(label) + '</strong>' +
+        'Ahora consultas sobre esta base de datos. La conversación anterior se ha olvidado.' +
+        '</div>';
+      input.value = '';
+      input.focus();
+    }
+
     async function runQuery() {
       const question = input.value.trim();
       if (!question || busy) return;
@@ -474,7 +520,7 @@
         const res = await fetch('/query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question }),
+          body: JSON.stringify({ question, dataset: datasetSel.value }),
         });
         const data = await res.json();
         fillAssistant(bubble, data);

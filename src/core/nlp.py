@@ -1,36 +1,22 @@
-_KEYWORDS: dict[str, list[str]] = {
-    "movies": [
-        "movie", "movies", "film", "films", "pelicula", "peliculas",
-        "director", "actor", "actriz", "cast", "genre", "genero",
-        "estreno", "imdb", "rating", "duracion", "runtime",
-        "titulo", "title", "award", "oscar", "premio", "watch",
-    ],
-    "comments": [
-        "comment", "comments", "comentario", "comentarios",
-        "review", "opinion", "resena", "texto", "message",
-    ],
-    "theaters": [
-        "theater", "theaters", "teatro", "cine", "sala",
-        "venue", "location", "cinema",
-    ],
-    "users": [
-        "user", "users", "usuario", "usuarios", "email", "cuenta",
-    ],
-}
+"""Collection detection.
 
-_DEFAULT = "movies"
+The per-dataset keyword routing now lives in src/core/datasets.py (so several
+datasets can be supported). This module keeps a thin, backwards-compatible
+wrapper: callers that don't care about the dataset get the sample_mflix routing,
+exactly as before.
+"""
+from src.core import datasets
 
 
-def detect_collection(question: str, previous: str | None = None) -> str:
+def detect_collection(question: str, previous: str | None = None,
+                      dataset: str | None = None) -> str:
     """Return the most likely MongoDB collection for the given question.
 
-    When no keyword matches (e.g. a follow-up question like "¿y solo las de
-    2010?"), reuse *previous* if provided so the conversation stays on the same
-    collection. Falls back to the default collection ('movies') otherwise.
+    When no keyword matches (e.g. a follow-up like "¿y solo las de 2010?"),
+    reuse *previous* if it belongs to the dataset so the conversation stays on
+    the same collection. Falls back to the dataset's default collection.
+
+    *dataset* selects which keyword set to use (defaults to sample_mflix).
     """
-    q = question.lower()
-    scores = {col: sum(1 for kw in kws if kw in q) for col, kws in _KEYWORDS.items()}
-    best = max(scores, key=scores.get)
-    if scores[best] > 0:
-        return best
-    return previous or _DEFAULT
+    return datasets.detect_collection(dataset or datasets.DEFAULT_DATASET,
+                                      question, previous)

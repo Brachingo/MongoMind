@@ -23,11 +23,12 @@ def client(monkeypatch, tmp_path):
     # Fake LLM: echoes the collection so we can assert on it; records history seen.
     calls = {"history": []}
 
-    def fake_generate(question, collection, history=None):
+    def fake_generate(question, collection, history=None, database=None):
         calls["history"].append(list(history or []))
+        calls.setdefault("databases", []).append(database)
         return {"q": question, "col": collection}
 
-    def fake_execute(collection, query, limit=100):
+    def fake_execute(collection, query, limit=100, database=None):
         # Return a non-empty result unless the question asks for "empty".
         if "vacio" in json.dumps(query, ensure_ascii=False):
             return []
@@ -86,6 +87,33 @@ def test_reset_clears_memory(client):
     client.post("/reset")
     client.post("/query", json={"question": "otra cosa cualquiera"})
     # After reset, the latest generate() call sees empty history again.
+    assert client._calls["history"][-1] == []
+
+
+def test_dataset_selection_routes_to_its_database(client):
+    # Selecting sample_airbnb must run against that database and route to its collection.
+    r = client.post("/query", json={"question": "alojamientos baratos",
+                                     "dataset": "sample_airbnb"})
+    body = r.json()
+    assert body["dataset"] == "sample_airbnb"
+    assert body["collection"] == "listingsAndReviews"
+    assert client._calls["databases"][-1] == "sample_airbnb"
+
+
+def test_unknown_dataset_falls_back_to_default(client):
+    r = client.post("/query", json={"question": "películas de accion",
+                                     "dataset": "no_existe"})
+    body = r.json()
+    assert body["dataset"] == "sample_mflix"
+    assert body["collection"] == "movies"
+
+
+def test_switching_dataset_clears_memory(client):
+    client.post("/query", json={"question": "películas de accion",
+                                "dataset": "sample_mflix"})
+    client.post("/query", json={"question": "alojamientos en Madrid",
+                                "dataset": "sample_airbnb"})
+    # The airbnb call must NOT have seen the mflix exchange as history.
     assert client._calls["history"][-1] == []
 
 

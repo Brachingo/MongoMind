@@ -27,14 +27,17 @@ def execute_query(
     collection: str,
     query: dict | list,
     limit: int = 100,
+    database: str | None = None,
 ) -> list[dict]:
     """Run a read-only query against MongoDB.
 
     Args:
-        collection: Collection name within MONGODB_DB_NAME.
+        collection: Collection name within the target database.
         query: A filter dict  → runs find(query)
                A pipeline list → runs aggregate(query)
         limit: Max documents returned (guards against accidental full scans).
+        database: Target database name. Defaults to MONGODB_DB_NAME (sample_mflix),
+            so existing single-dataset callers are unaffected.
 
     Returns:
         List of documents with '_id' removed.
@@ -44,7 +47,7 @@ def execute_query(
         ConnectionFailure: If Atlas is unreachable.
         OperationFailure: If the query is rejected by MongoDB (bad syntax, auth, etc.).
     """
-    db_name = os.getenv("MONGODB_DB_NAME", "sample_mflix")
+    db_name = database or os.getenv("MONGODB_DB_NAME", "sample_mflix")
     db = _get_client()[db_name]
     col = db[collection]
 

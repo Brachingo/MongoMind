@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-from src.core import db_connector, mql_generator, nlp, query_logger
+from src.core import datasets, db_connector, mql_generator, nlp, query_logger
 from src.core.sanitizer import sanitize_question
 from src.web.rate_limit import RateLimiter
 
@@ -42,12 +42,14 @@ _SESSIONS: dict[str, dict] = {}
 
 class QueryRequest(BaseModel):
     question: str
+    dataset: str | None = None   # one of datasets.dataset_keys(); None -> default
 
 
 class QueryResponse(BaseModel):
     mql: str
     results: list[dict]
     collection: str
+    dataset: str = ""
     message: str | None = None   # info (e.g. 0 results), not an error
     error: str | None = None
 
@@ -62,19 +64,25 @@ def _client_id(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+def _new_session() -> dict:
+    return {"history": [], "collection": None, "dataset": datasets.DEFAULT_DATASET}
+
+
 def _get_session(session_id: str | None) -> tuple[str, dict]:
     """Return (session_id, session) creating a fresh session when needed."""
     if session_id and session_id in _SESSIONS:
         return session_id, _SESSIONS[session_id]
     new_id = session_id or uuid.uuid4().hex
-    session = {"history": [], "collection": None}
+    session = _new_session()
     _SESSIONS[new_id] = session
     return new_id, session
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "index.html")
+    return templates.TemplateResponse(
+        request, "index.html", {"datasets": datasets.options()}
+    )
 
 
 @app.post("/reset")
@@ -82,7 +90,7 @@ def reset(request: Request) -> JSONResponse:
     """Clear the conversational memory for the current session."""
     session_id = request.cookies.get(SESSION_COOKIE)
     if session_id and session_id in _SESSIONS:
-        _SESSIONS[session_id] = {"history": [], "collection": None}
+        _SESSIONS[session_id] = _new_session()
     return JSONResponse({"ok": True})
 
 
@@ -104,15 +112,26 @@ def query(body: QueryRequest, request: Request, response: Response) -> QueryResp
     session_id, session = _get_session(request.cookies.get(SESSION_COOKIE))
     response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
 
+    # ── Dataset selection ────────────────────────────────────────────────────
+    # Validate against the known registry; switching dataset clears the memory
+    # since anaphora across datasets ("¿y ordenadas por año?") makes no sense.
+    dataset = datasets.resolve(body.dataset)
+    if dataset != session.get("dataset"):
+        session["history"], session["collection"] = [], None
+        session["dataset"] = dataset
+    db_name = datasets.database_for(dataset)
+
     collection = ""
     mql_query: dict | list | None = None
     try:
         # ── Input sanitization ───────────────────────────────────────────────
         question = sanitize_question(body.question)
 
-        collection = nlp.detect_collection(question, previous=session["collection"])
-        mql_query = mql_generator.generate(question, collection, history=session["history"])
-        raw_results = db_connector.execute_query(collection, mql_query)
+        collection = nlp.detect_collection(question, previous=session["collection"],
+                                           dataset=dataset)
+        mql_query = mql_generator.generate(question, collection,
+                                           history=session["history"], database=db_name)
+        raw_results = db_connector.execute_query(collection, mql_query, database=db_name)
         results = _to_serializable(raw_results)
 
         # Update conversational memory (trim to the last HISTORY_WINDOW exchanges).
@@ -132,16 +151,18 @@ def query(body: QueryRequest, request: Request, response: Response) -> QueryResp
             mql=json.dumps(mql_query, indent=2, ensure_ascii=False),
             results=results,
             collection=collection,
+            dataset=dataset,
             message=message,
         )
     except ValueError as exc:
         query_logger.log_query(body.question, collection, mql_query,
                                error=str(exc), client=client)
-        return QueryResponse(mql="", results=[], collection="", error=str(exc))
+        return QueryResponse(mql="", results=[], collection="", dataset=dataset,
+                             error=str(exc))
     except Exception as exc:
         query_logger.log_query(body.question, collection, mql_query,
                                error=str(exc), client=client)
-        return QueryResponse(mql="", results=[], collection="",
+        return QueryResponse(mql="", results=[], collection="", dataset=dataset,
                              error=f"Error inesperado: {exc}")
 
 

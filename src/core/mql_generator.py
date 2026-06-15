@@ -24,24 +24,36 @@ _WRITE_OPS = {
     "deleteOne", "deleteMany", "drop",
 }
 
-_template_cache: dict[str, str] = {}
-_schema_cache: dict[str, dict] = {}
+# Caches keyed by (database, collection) so the same collection name in two
+# different datasets does not collide.
+_template_cache: dict[tuple[str | None, str], str] = {}
+_schema_cache: dict[tuple[str | None, str], dict] = {}
+
+# Cap example value length in the dynamic schema so a single huge field (e.g. an
+# embedded reviews/array document) cannot bloat the prompt.
+_MAX_EXAMPLE_LEN = 120
 
 
-def _get_schema(collection: str) -> dict:
+def _get_schema(collection: str, database: str | None = None) -> dict:
     """Return schema dict for *collection*, loading from file or inferring live."""
-    if collection in _schema_cache:
-        return _schema_cache[collection]
+    key = (database, collection)
+    if key in _schema_cache:
+        return _schema_cache[key]
 
     schema_path = SCHEMAS_DIR / f"{collection}.json"
     if schema_path.exists():
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
     else:
         from src.core import schema_inferrer  # avoid circular import at module level
-        schema = schema_inferrer.infer(collection)
+        schema = schema_inferrer.infer(collection, database=database)
 
-    _schema_cache[collection] = schema
+    _schema_cache[key] = schema
     return schema
+
+
+def _truncate(s: str) -> str:
+    """Shorten an example/value string so a giant field cannot bloat the prompt."""
+    return s if len(s) <= _MAX_EXAMPLE_LEN else s[:_MAX_EXAMPLE_LEN] + "…"
 
 
 def _schema_fields_to_lines(fields: dict, prefix: str = "") -> list[str]:
@@ -54,11 +66,11 @@ def _schema_fields_to_lines(fields: dict, prefix: str = "") -> list[str]:
 
         if "values" in meta:
             vals = ", ".join(str(v) for v in meta["values"][:15])
-            parts.append(f"Valores: {vals}")
+            parts.append(f"Valores: {_truncate(vals)}")
         elif "example" in meta:
             ex = meta["example"]
             ex_str = f'"{ex}"' if isinstance(ex, str) else str(ex)
-            parts.append(f"Ejemplo: {ex_str}")
+            parts.append(f"Ejemplo: {_truncate(ex_str)}")
 
         if meta.get("optional"):
             parts.append("(opcional)")
@@ -120,15 +132,16 @@ def _build_dynamic_template(collection: str, schema: dict) -> str:
     )
 
 
-def _load_template(collection: str) -> str:
-    if collection not in _template_cache:
+def _load_template(collection: str, database: str | None = None) -> str:
+    key = (database, collection)
+    if key not in _template_cache:
         path = TEMPLATES_DIR / f"{collection}.txt"
         if path.exists():
-            _template_cache[collection] = path.read_text(encoding="utf-8")
+            _template_cache[key] = path.read_text(encoding="utf-8")
         else:
-            schema = _get_schema(collection)
-            _template_cache[collection] = _build_dynamic_template(collection, schema)
-    return _template_cache[collection]
+            schema = _get_schema(collection, database=database)
+            _template_cache[key] = _build_dynamic_template(collection, schema)
+    return _template_cache[key]
 
 
 def _format_user_turn(question: str) -> str:
@@ -149,6 +162,7 @@ def _build_messages(
     question: str,
     collection: str,
     history: list[dict] | None = None,
+    database: str | None = None,
 ) -> list[dict]:
     """Build the chat messages for the LLM.
 
@@ -156,7 +170,7 @@ def _build_messages(
     user/assistant) inserted between the system prompt and the current question
     so the model can resolve anaphoric follow-ups ("¿y ordenadas por año?").
     """
-    template = _load_template(collection)
+    template = _load_template(collection, database=database)
     lines = template.splitlines()
     cutoff = next(
         (i for i, line in enumerate(lines) if line.startswith("Ahora responde")),
@@ -215,6 +229,7 @@ def generate(
     question: str,
     collection: str,
     history: list[dict] | None = None,
+    database: str | None = None,
 ) -> dict | list:
     """Translate a natural language question into a PyMongo-compatible MQL query.
 
@@ -226,6 +241,8 @@ def generate(
         collection: Target MongoDB collection.
         history:    Optional list of prior {role, content} turns (conversational
                     memory) so follow-up questions can resolve references.
+        database:   Target database (selects the schema/template context). Defaults
+                    to the single-dataset behaviour (sample_mflix).
 
     Returns:
         dict  -> use with collection.find()
@@ -236,7 +253,7 @@ def generate(
     """
     import ollama
 
-    messages = _build_messages(question, collection, history)
+    messages = _build_messages(question, collection, history, database=database)
     response = ollama.chat(
         model=_model(),
         messages=messages,

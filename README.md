@@ -70,16 +70,49 @@ cp .env.example .env   # añadir MONGODB_URI
 python src/web/app.py   # http://localhost:8000
 ```
 
+En la cabecera de la web puedes elegir el **dataset** sobre el que consultar
+(`sample_mflix`, `sample_airbnb`, `sample_analytics`). El registro de datasets
+está en `src/core/datasets.py`.
+
+## Datasets adicionales (multi-dataset)
+
+`sample_mflix` ya cubre la evaluación principal. Para probar la generalización a
+otras bases de datos, MongoMind soporta también `sample_airbnb` y
+`sample_analytics`. Hay dos formas de cargarlos en tu cluster:
+
+**Opción A — UI de Atlas (oficial, carga todos los sample datasets):**
+Cluster → `...` → *Load Sample Dataset*. Tarda unos minutos y crea todas las
+bases `sample_*`.
+
+**Opción B — script (solo airbnb + analytics):**
+Requiere un usuario de MongoDB con permisos de **escritura** (el usuario de
+producción es de solo lectura). Define su `MONGODB_URI` en el entorno y ejecuta:
+
+```bash
+python scripts/load_sample_datasets.py            # clona el mirror y carga ambos
+python scripts/load_sample_datasets.py --drop     # recrea las colecciones
+```
+
+El script clona automáticamente un mirror público de los datos (NDJSON) e
+inserta vía PyMongo. Tras cargar, vuelve a dejar la conexión en solo lectura.
+
+Verifica la carga:
+
+```bash
+python tests/multi_dataset_test.py   # requiere Ollama + Atlas
+```
+
 ## Estructura
 
 ```
 src/
-  core/        # db_connector · mql_generator · nlp · schema_inferrer
+  core/        # db_connector · mql_generator · nlp · schema_inferrer · datasets
   web/         # FastAPI app + templates HTML
   prompts/     # plantillas few-shot por colección (movies.txt, …)
 data/
   schemas/     # esquemas JSON de colecciones (movies.json, …)
   benchmark/   # pares (pregunta NL, MQL esperado) para evaluación
+scripts/       # utilidades (load_sample_datasets.py)
 tests/
 ```
 

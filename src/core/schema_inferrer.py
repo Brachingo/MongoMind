@@ -153,8 +153,11 @@ def _safe_example(v: Any) -> Any:
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
-def infer(collection: str, n: int = _DEFAULT_SAMPLE) -> dict:
+def infer(collection: str, n: int = _DEFAULT_SAMPLE,
+          database: str | None = None) -> dict:
     """Sample n documents from *collection* and return an inferred schema dict.
+
+    *database* selects the target MongoDB database (defaults to MONGODB_DB_NAME).
 
     The output format mirrors data/schemas/*.json:
     {
@@ -169,6 +172,7 @@ def infer(collection: str, n: int = _DEFAULT_SAMPLE) -> dict:
         collection,
         [{"$sample": {"size": n}}],
         limit=n,
+        database=database,
     )
     if not docs:
         raise ValueError(f"No documents returned from collection '{collection}'")
