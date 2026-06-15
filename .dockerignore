@@ -1,0 +1,29 @@
+# Control de versiones y entornos
+.git
+.gitignore
+.venv
+venv
+env
+
+# Cachés de Python
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Secretos y logs (el .env se inyecta en runtime con env_file, no se hornea)
+.env
+.env.*
+logs
+*.log
+
+# No necesarios en la imagen de la app
+tests
+scripts
+TXTs
+.claude
+CLAUDE.md
+CLAUDE.local.md
+*.md
+data/benchmark/results_*.json

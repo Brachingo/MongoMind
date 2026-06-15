@@ -48,9 +48,10 @@ Pregunta en lenguaje natural
 | Capa | Tecnología |
 |---|---|
 | Modelo NL→MQL | Ollama + `llama3.2` (local, sin API key) |
-| Base de datos | MongoDB Atlas (sample_mflix) |
+| Base de datos | MongoDB Atlas (`sample_mflix` · `sample_airbnb` · `sample_analytics`) |
 | Backend | FastAPI + Uvicorn |
-| Dataset de evaluación | `data/benchmark/` |
+| Despliegue | Docker + Docker Compose |
+| Evaluación | Benchmark de 65 pares + corrección funcional (`tests/eval.py`) |
 
 ## Instalación
 
@@ -102,6 +103,20 @@ Verifica la carga:
 python tests/multi_dataset_test.py   # requiere Ollama + Atlas
 ```
 
+## Docker
+
+La app se empaqueta en un contenedor que se conecta a tu **MongoDB Atlas** (vía
+`MONGODB_URI`) y al **Ollama del host** (vía `host.docker.internal`). No se levanta
+un MongoDB local: los datos viven en Atlas.
+
+```bash
+cp .env.example .env       # rellena MONGODB_URI (Atlas)
+docker compose up --build  # http://localhost:8000
+```
+
+Requisitos: Docker Desktop, Ollama corriendo en el host (`ollama serve` + `ollama pull llama3.2`)
+y un `.env` con la `MONGODB_URI` de Atlas. El compose fija `OLLAMA_HOST` automáticamente.
+
 ## Estructura
 
 ```
@@ -116,27 +131,51 @@ scripts/       # utilidades (load_sample_datasets.py)
 tests/
 ```
 
+## Evaluación
+
+El benchmark (`data/benchmark/movies_benchmark.json`) tiene **65 pares** (pregunta NL,
+MQL de referencia) sobre `movies`, con split **70/30 dev/test**. La métrica es la
+**corrección funcional** (se ejecutan ambas queries y se comparan los resultados, no el
+texto), tolerante a proyección, orden y nombres de campo.
+
+```bash
+python tests/eval.py --split test --model llama3.2   # evalúa y exporta JSON
+python tests/compare_results.py --split test         # tabla comparativa de modelos
+```
+
+**Comparativa de modelos** (split test, n=19, solo Ollama):
+
+| Modelo | Funcional | Exact match | Tasa error | Latencia |
+|---|---|---|---|---|
+| llama3.1 (8B) | 68.4% | 52.6% | 0.0% | 4.37s |
+| llama3.2 (3B) | 73.7% | 15.8% | 10.5% | 1.27s |
+
+> La mejora de few-shots del análisis de errores (sobre el split **dev**) elevó a `llama3.2`
+> de 63.2% → **73.7%** funcional en el split test (holdout), confirmando que generaliza.
+
 ## Tests
 
 ```bash
-# Tests unitarios (sin Ollama ni Atlas)
-pytest tests/test_mql_generator.py tests/test_schema_inferrer.py -v   # 36 tests
+# Batería unitaria completa (sin Ollama ni Atlas)
+pytest                                  # 150 tests
 
-# Tests de integración (requieren Atlas)
-pytest tests/test_db_connector.py -v                                   # 6 tests
-
-# Smoke test end-to-end (requiere Ollama + Atlas)
-python tests/smoke_test.py
+# Integración (requieren Atlas / Ollama) — se lanzan con python:
+python tests/verify_benchmark.py        # 65 queries de referencia contra Atlas
+python tests/multi_dataset_test.py      # airbnb / analytics end-to-end
+python tests/smoke_test.py              # smoke end-to-end sobre movies
 ```
 
 ## Estado actual
 
 - [x] Entorno y conexión a MongoDB Atlas verificada
 - [x] `db_connector.py` — find y aggregate con límite de seguridad
-- [x] Esquema `movies.json` y plantilla few-shot `movies.txt` (12 ejemplos)
+- [x] Esquemas + plantillas few-shot (`movies`, `listingsAndReviews`, `accounts`, `customers`, `transactions`)
 - [x] `mql_generator.py` — generación MQL vía Ollama (`llama3.2`, local)
-- [x] `nlp.py` — detección de colección por palabras clave
+- [x] `nlp.py` + `datasets.py` — detección de colección y soporte multi-dataset
 - [x] `schema_inferrer.py` — inferencia dinámica de esquema desde documentos reales
 - [x] Pipeline end-to-end `nlp → mql_generator → db_connector`
-- [x] Interfaz web FastAPI
-- [ ] Benchmark y evaluación comparativa de modelos
+- [x] Memoria conversacional, rate limiting, sanitización y log de queries
+- [x] Interfaz web FastAPI con selector de dataset
+- [x] Benchmark (65 pares) + evaluación funcional + comparativa de modelos
+- [x] Despliegue con Docker / Docker Compose
+- [ ] Memoria del TFM y demo (Día 21)

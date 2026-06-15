@@ -1,0 +1,28 @@
+# MongoMind — orquestación de la app.
+#
+# La base de datos es MongoDB Atlas (servicio gestionado en la nube), por lo que
+# NO se levanta un contenedor de MongoDB: estaría vacío (los datos sample_mflix /
+# sample_airbnb / sample_analytics, los esquemas y el benchmark viven en Atlas).
+# El contenedor se conecta a Atlas con MONGODB_URI del .env.
+#
+# Ollama corre en el HOST (localhost:11434). Desde el contenedor se alcanza vía
+# host.docker.internal, configurado con OLLAMA_HOST.
+#
+# Arranque:  docker compose up --build      → http://localhost:8000
+
+services:
+  app:
+    build: .
+    container_name: mongomind
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    env_file:
+      - .env                       # MONGODB_URI, MONGODB_DB_NAME, OLLAMA_MODEL, ...
+    environment:
+      # Sobrescribe lo que depende de la red del contenedor:
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # para que funcione también en Linux
+    restart: unless-stopped

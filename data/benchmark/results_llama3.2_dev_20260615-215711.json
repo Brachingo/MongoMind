@@ -1,0 +1,1914 @@
+{
+  "model": "llama3.2",
+  "split": "dev",
+  "collection": "movies",
+  "timestamp": "2026-06-15T21:57:11",
+  "n_pairs": 46,
+  "eval_limit": 1000,
+  "metrics": {
+    "functional_accuracy": 0.891,
+    "exact_match": 0.109,
+    "execution_error_rate": 0.022,
+    "partial_correctness": 0.91,
+    "avg_latency_s": 1.28,
+    "n": 46
+  },
+  "by_complexity": {
+    "simple": {
+      "n": 15,
+      "functional_accuracy": 0.867
+    },
+    "media": {
+      "n": 18,
+      "functional_accuracy": 1.0
+    },
+    "alta": {
+      "n": 10,
+      "functional_accuracy": 0.8
+    },
+    "ambiguous": {
+      "n": 3,
+      "functional_accuracy": 0.667
+    }
+  },
+  "items": [
+    {
+      "id": "s01",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Busca la película titulada Inception",
+      "expected_mql": {
+        "title": "Inception"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "title": "Inception"
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "plot": 1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 8.03,
+      "n_expected": 1,
+      "n_actual": 1
+    },
+    {
+      "id": "s02",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas del género Action",
+      "expected_mql": {
+        "genres": "Action"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": "Action"
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.31,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s04",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas en las que actúa Tom Hanks",
+      "expected_mql": {
+        "cast": "Tom Hanks"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "cast": {
+              "$in": [
+                "Tom Hanks"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.16,
+      "n_expected": 37,
+      "n_actual": 37
+    },
+    {
+      "id": "s05",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas estrenadas en 1994",
+      "expected_mql": {
+        "year": 1994
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "year": 1994
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "functional": false,
+      "partial": 0.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.67,
+      "n_expected": 305,
+      "n_actual": 1
+    },
+    {
+      "id": "s06",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas clasificadas como PG-13",
+      "expected_mql": {
+        "rated": "PG-13"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "rated": "PG-13"
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "rated": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.97,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s08",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas en español",
+      "expected_mql": {
+        "languages": "Spanish"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "languages": {
+              "$in": [
+                "Spanish"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.13,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s09",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Find all series",
+      "expected_mql": {
+        "type": "series"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "type": "series"
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.54,
+      "n_expected": 232,
+      "n_actual": 232
+    },
+    {
+      "id": "s10",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas de comedia estrenadas en 2010",
+      "expected_mql": {
+        "genres": "Comedy",
+        "year": 2010
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$in": [
+                "Comedy"
+              ]
+            },
+            "year": 2010
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.33,
+      "n_expected": 252,
+      "n_actual": 252
+    },
+    {
+      "id": "s11",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas dirigidas por Steven Spielberg",
+      "expected_mql": {
+        "directors": "Steven Spielberg"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "directors": {
+              "$in": [
+                "Steven Spielberg"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "directors": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.05,
+      "n_expected": 29,
+      "n_actual": 29
+    },
+    {
+      "id": "s13",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Busca la película titulada Titanic",
+      "expected_mql": {
+        "title": "Titanic"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "title": "Titanic"
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.79,
+      "n_expected": 2,
+      "n_actual": 2
+    },
+    {
+      "id": "s14",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Movies starring Leonardo DiCaprio",
+      "expected_mql": {
+        "cast": "Leonardo DiCaprio"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "cast": {
+              "$in": [
+                "Leonardo DiCaprio"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.19,
+      "n_expected": 25,
+      "n_actual": 25
+    },
+    {
+      "id": "s15",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas del año 2000",
+      "expected_mql": {
+        "year": 2000
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "year": 2000
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.09,
+      "n_expected": 581,
+      "n_actual": 581
+    },
+    {
+      "id": "s17",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Movies in French",
+      "expected_mql": {
+        "languages": "French"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "languages": {
+              "$in": [
+                "French"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "plot": 1,
+            "genres": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.01,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s18",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas del género Documentary",
+      "expected_mql": {
+        "genres": "Documentary"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": "Documentary"
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.07,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s20",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas de Reino Unido del género Drama",
+      "expected_mql": {
+        "countries": "UK",
+        "genres": "Drama"
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$in": [
+                "Drama"
+              ]
+            },
+            "countries": {
+              "$in": [
+                "United Kingdom"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": false,
+      "partial": 0.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.28,
+      "n_expected": 1000,
+      "n_actual": 0
+    },
+    {
+      "id": "m01",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas con puntuación IMDb superior a 8.5",
+      "expected_mql": {
+        "imdb.rating": {
+          "$gt": 8.5
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$gt": 8.5
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.11,
+      "n_expected": 149,
+      "n_actual": 149
+    },
+    {
+      "id": "m03",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas estrenadas después de 2010",
+      "expected_mql": {
+        "year": {
+          "$gt": 2010
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "year": {
+              "$gt": 2010
+            }
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.63,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m04",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas estrenadas entre 2000 y 2010",
+      "expected_mql": {
+        "year": {
+          "$gte": 2000,
+          "$lte": 2010
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "year": {
+              "$gte": 2000,
+              "$lte": 2010
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.34,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m05",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas con más de un millón de votos en IMDb",
+      "expected_mql": {
+        "imdb.votes": {
+          "$gt": 1000000
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "imdb.votes": {
+              "$gt": 1000000
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.12,
+      "n_expected": 12,
+      "n_actual": 12
+    },
+    {
+      "id": "m06",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas dirigidas por Christopher Nolan o Steven Spielberg",
+      "expected_mql": {
+        "directors": {
+          "$in": [
+            "Christopher Nolan",
+            "Steven Spielberg"
+          ]
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "directors": {
+              "$in": [
+                "Christopher Nolan",
+                "Steven Spielberg"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.94,
+      "n_expected": 38,
+      "n_actual": 38
+    },
+    {
+      "id": "m07",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas de género Drama o Thriller",
+      "expected_mql": {
+        "genres": {
+          "$in": [
+            "Drama",
+            "Thriller"
+          ]
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$in": [
+                "Drama",
+                "Thriller"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.24,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m09",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Movies whose title starts with The",
+      "expected_mql": {
+        "title": {
+          "$regex": "^The",
+          "$options": "i"
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "title": {
+              "$regex": "^The",
+              "$options": "i"
+            }
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.69,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m10",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Las 10 películas con mayor puntuación IMDb",
+      "expected_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.39,
+      "n_expected": 10,
+      "n_actual": 10
+    },
+    {
+      "id": "m11",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Las 5 películas más largas",
+      "expected_mql": [
+        {
+          "$match": {
+            "runtime": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "runtime": -1
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "title": 1,
+            "runtime": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "runtime": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "runtime": -1
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "title": 1,
+            "runtime": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.28,
+      "n_expected": 5,
+      "n_actual": 5
+    },
+    {
+      "id": "m13",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas de acción con puntuación IMDb mayor de 8",
+      "expected_mql": {
+        "genres": "Action",
+        "imdb.rating": {
+          "$gt": 8
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": "Action",
+            "imdb.rating": {
+              "$gt": 8
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.16,
+      "n_expected": 74,
+      "n_actual": 74
+    },
+    {
+      "id": "m14",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas que ganaron más de 5 premios",
+      "expected_mql": {
+        "awards.wins": {
+          "$gt": 5
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "awards.wins": {
+              "$gt": 5
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "awards.wins": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.02,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m15",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas con puntuación IMDb entre 7 y 8",
+      "expected_mql": {
+        "imdb.rating": {
+          "$gte": 7,
+          "$lte": 8
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$gte": 7,
+              "$lte": 8
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.25,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m17",
+      "complexity": "media",
+      "result_type": "count",
+      "question": "¿Cuántas películas se estrenaron en 2015?",
+      "expected_mql": [
+        {
+          "$match": {
+            "year": 2015
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "year": 2015
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 0.7,
+      "n_expected": 1,
+      "n_actual": 1
+    },
+    {
+      "id": "m18",
+      "complexity": "media",
+      "result_type": "scalar",
+      "question": "¿Cuál es la duración media de las películas?",
+      "expected_mql": [
+        {
+          "$match": {
+            "runtime": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$group": {
+            "_id": null,
+            "duracion_media": {
+              "$avg": "$runtime"
+            }
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$group": {
+            "_id": null,
+            "duracion_media_minutos": {
+              "$avg": "$runtime"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "duracion_media_minutos": 1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.27,
+      "n_expected": 1,
+      "n_actual": 1
+    },
+    {
+      "id": "m20",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Movies starring Tom Hanks that won more than 3 awards",
+      "expected_mql": {
+        "cast": "Tom Hanks",
+        "awards.wins": {
+          "$gt": 3
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "cast": "Tom Hanks",
+            "awards.wins": {
+              "$gt": 3
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "awards.wins": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.16,
+      "n_expected": 28,
+      "n_actual": 28
+    },
+    {
+      "id": "m21",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas con puntuación de audiencia en Rotten Tomatoes mayor de 4",
+      "expected_mql": {
+        "tomatoes.viewer.rating": {
+          "$gt": 4
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "tomatoes.viewer.rating": {
+              "$gt": 4
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.13,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m23",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas que no son del género Drama",
+      "expected_mql": {
+        "genres": {
+          "$ne": "Drama"
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$nin": [
+                "Drama"
+              ]
+            }
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.66,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "m24",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Películas con más de 10 nominaciones",
+      "expected_mql": {
+        "awards.nominations": {
+          "$gt": 10
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "awards.nominations": {
+              "$gt": 10
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "awards.wins": 1,
+            "awards.nominations": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.21,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "a01",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "¿Cuántas películas hay de cada género?",
+      "expected_mql": [
+        {
+          "$unwind": "$genres"
+        },
+        {
+          "$group": {
+            "_id": "$genres",
+            "total": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "total": -1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$unwind": "$genres"
+        },
+        {
+          "$group": {
+            "_id": "$genres",
+            "total": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "total": -1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.02,
+      "n_expected": 25,
+      "n_actual": 25
+    },
+    {
+      "id": "a03",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "Puntuación IMDb media por género",
+      "expected_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$unwind": "$genres"
+        },
+        {
+          "$group": {
+            "_id": "$genres",
+            "rating_medio": {
+              "$avg": "$imdb.rating"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "rating_medio": -1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$unwind": "$genres"
+        },
+        {
+          "$group": {
+            "_id": "$genres",
+            "rating_medio": {
+              "$avg": "$imdb.rating"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "rating_medio": -1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.33,
+      "n_expected": 25,
+      "n_actual": 25
+    },
+    {
+      "id": "a04",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "Películas de Drama o Thriller con IMDb entre 7 y 9 estrenadas entre 2000 y 2015",
+      "expected_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$in": [
+                "Drama",
+                "Thriller"
+              ]
+            },
+            "imdb.rating": {
+              "$gte": 7,
+              "$lte": 9
+            },
+            "year": {
+              "$gte": 2000,
+              "$lte": 2015
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$in": [
+                "Drama",
+                "Thriller"
+              ]
+            },
+            "imdb.rating": {
+              "$gte": 7,
+              "$lte": 9
+            },
+            "year": {
+              "$gte": 2000,
+              "$lte": 2015
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 2.22,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "a06",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "Número de películas estrenadas por año",
+      "expected_mql": [
+        {
+          "$match": {
+            "year": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$group": {
+            "_id": "$year",
+            "total": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "_id": 1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$group": {
+            "_id": "$year",
+            "total": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "_id": 1
+          }
+        }
+      ],
+      "functional": false,
+      "partial": 0.831,
+      "exact": false,
+      "error": null,
+      "latency_s": 0.9,
+      "n_expected": 108,
+      "n_actual": 130
+    },
+    {
+      "id": "a07",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "The 10 actors appearing in the most movies",
+      "expected_mql": [
+        {
+          "$unwind": "$cast"
+        },
+        {
+          "$group": {
+            "_id": "$cast",
+            "num_peliculas": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "num_peliculas": -1
+          }
+        },
+        {
+          "$limit": 10
+        }
+      ],
+      "generated_mql": [
+        {
+          "$unwind": "$cast"
+        },
+        {
+          "$group": {
+            "_id": "$cast",
+            "num_peliculas": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "num_peliculas": -1
+          }
+        },
+        {
+          "$limit": 10
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.22,
+      "n_expected": 10,
+      "n_actual": 10
+    },
+    {
+      "id": "a08",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "Duración media de las películas por clasificación",
+      "expected_mql": [
+        {
+          "$match": {
+            "runtime": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$group": {
+            "_id": "$rated",
+            "duracion_media": {
+              "$avg": "$runtime"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "duracion_media": -1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$group": {
+            "_id": "$rated",
+            "duracion_media_minutos": {
+              "$avg": "$runtime"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "duracion_media_minutos": -1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.21,
+      "n_expected": 18,
+      "n_actual": 18
+    },
+    {
+      "id": "a10",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "Top 5 géneros con mejor puntuación IMDb media",
+      "expected_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$unwind": "$genres"
+        },
+        {
+          "$group": {
+            "_id": "$genres",
+            "rating_medio": {
+              "$avg": "$imdb.rating"
+            },
+            "num": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "rating_medio": -1
+          }
+        },
+        {
+          "$limit": 5
+        }
+      ],
+      "generated_mql": [
+        {
+          "$unwind": "$genres"
+        },
+        {
+          "$group": {
+            "_id": "$genres",
+            "rating_medio": {
+              "$avg": "$imdb.rating"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "rating_medio": -1
+          }
+        },
+        {
+          "$limit": 5
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.23,
+      "n_expected": 5,
+      "n_actual": 5
+    },
+    {
+      "id": "a11",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "Películas con un reparto de más de 3 actores",
+      "expected_mql": {
+        "cast.3": {
+          "$exists": true
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "cast.3": {
+              "$exists": true
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.17,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "a12",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "Películas en las que actúan Brad Pitt y George Clooney juntos",
+      "expected_mql": {
+        "cast": {
+          "$all": [
+            "Brad Pitt",
+            "George Clooney"
+          ]
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "cast": {
+              "$all": [
+                "Brad Pitt",
+                "George Clooney"
+              ]
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "cast": 0,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": false,
+      "partial": 0.0,
+      "exact": false,
+      "error": "OperationFailure: Query execution failed on 'movies': Invalid $project :: caused by :: Cannot do exclusion on field cast in inclusion projection, full error: {'ok': 0.0, 'errmsg'",
+      "latency_s": 1.05,
+      "n_expected": null,
+      "n_actual": null
+    },
+    {
+      "id": "a15",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "Películas de comedia de menos de 90 minutos con puntuación IMDb mayor de 7",
+      "expected_mql": [
+        {
+          "$match": {
+            "genres": "Comedy",
+            "runtime": {
+              "$lt": 90
+            },
+            "imdb.rating": {
+              "$gt": 7
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "runtime": 1,
+            "imdb.rating": 1,
+            "_id": 0
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": "Comedy",
+            "runtime": {
+              "$lt": 90
+            },
+            "imdb.rating": {
+              "$gt": 7
+            }
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.53,
+      "n_expected": 407,
+      "n_actual": 407
+    },
+    {
+      "id": "x01",
+      "complexity": "ambiguous",
+      "result_type": "documents",
+      "question": "pelis de accion del 2010",
+      "expected_mql": {
+        "genres": "Action",
+        "year": 2010
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "genres": {
+              "$in": [
+                "Action"
+              ]
+            },
+            "year": 2010
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "genres": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.32,
+      "n_expected": 116,
+      "n_actual": 116
+    },
+    {
+      "id": "x03",
+      "complexity": "ambiguous",
+      "result_type": "documents",
+      "question": "las mejores películas",
+      "expected_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "imdb.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "imdb.rating": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.37,
+      "n_expected": 10,
+      "n_actual": 10
+    },
+    {
+      "id": "x05",
+      "complexity": "ambiguous",
+      "result_type": "documents",
+      "question": "películas largas",
+      "expected_mql": {
+        "runtime": {
+          "$gt": 150
+        }
+      },
+      "generated_mql": [
+        {
+          "$match": {
+            "runtime": {
+              "$exists": true,
+              "$type": "int"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "runtime": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "runtime": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": false,
+      "partial": 0.011,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.37,
+      "n_expected": 863,
+      "n_actual": 10
+    }
+  ]
+}

@@ -13,9 +13,7 @@ jinja2>=3.1.0
 # Utilidades
 python-dotenv>=1.0.0
 pydantic>=2.7.0
-
-# Evaluación
-pandas>=2.2.0
+# (bson y json_util — usados por scripts/load_sample_datasets.py — vienen incluidos en pymongo)
 
 # Tests
 pytest>=8.2.0
