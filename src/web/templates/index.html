@@ -4,105 +4,180 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MongoMind</title>
+  <script>
+    // Apply saved theme before first paint to avoid a flash.
+    (function () {
+      try {
+        const t = localStorage.getItem('mm-theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── Light theme (default) ──────────────────────── */
     :root {
-      --border:      #C5DDD5;
-      --green-dark:  #00684A;
-      --green-mid:   #13AA52;
-      --text:        #1A2E24;
-      --muted:       #5A7A6A;
+      --border:       #C5DDD5;
+      --green-dark:   #00684A;
+      --green-mid:    #13AA52;
+      --text:         #1A2E24;
+      --muted:        #5A7A6A;
+
+      --bg:           #fefefe;
+      --surface:      #fefefe;
+      --header-line:  #D4EBE0;
+      --code-bg:      #F4FAF7;
+      --th-bg:        #EDF5F1;
+      --row-hover:    #F4FAF7;
+      --td-line:      #EAF3EE;
+      --btn-soft:     #EDF5F1;
+      --placeholder:  #9ABFB0;
+      --tagline:      #3A7A5A;
+
+      --user-bubble:  #00684A;
+      --user-text:    #ffffff;
+      --asst-bubble:  #fefefe;
+
+      --err-bg:       #FFF0F0; --err-border: #E08080; --err-text: #8B2020;
+      --info-bg:      #FFF8E8; --info-border:#E8C878; --info-text:#7A5A10;
+
+      --shadow:       rgba(0,0,0,0.08);
+    }
+
+    /* ── Dark theme ─────────────────────────────────── */
+    [data-theme="dark"] {
+      --border:       #2A4339;
+      --green-dark:   #13AA52;
+      --green-mid:    #3FD07A;
+      --text:         #E4F0EA;
+      --muted:        #8FB0A0;
+
+      --bg:           #0E1612;
+      --surface:      #14211B;
+      --header-line:  #233A30;
+      --code-bg:      #101A15;
+      --th-bg:        #1B2C24;
+      --row-hover:    #1B2C24;
+      --td-line:      #1F332A;
+      --btn-soft:     #1B2C24;
+      --placeholder:  #5A7A6A;
+      --tagline:      #6FB890;
+
+      --user-bubble:  #13AA52;
+      --user-text:    #06140D;
+      --asst-bubble:  #14211B;
+
+      --err-bg:       #3A1A1A; --err-border:#7A3030; --err-text:#F0B0B0;
+      --info-bg:      #332B14; --info-border:#7A6020; --info-text:#E8C878;
+
+      --shadow:       rgba(0,0,0,0.4);
     }
 
     html, body {
-      min-height: 100vh;
-      background: #fefefe;
+      height: 100vh;
+      background: var(--bg);
       color: var(--text);
       font-family: 'Segoe UI', system-ui, sans-serif;
+      transition: background 0.2s, color 0.2s;
     }
+
+    body { display: flex; flex-direction: column; }
 
     /* ── Header ─────────────────────────────────────── */
     header {
-      background: #fefefe;
-      border-bottom: 2px solid #D4EBE0;
+      flex: none;
+      background: var(--surface);
+      border-bottom: 2px solid var(--header-line);
       padding: 1.25rem 2.5rem;
       display: flex;
       align-items: center;
       gap: 1.25rem;
     }
     header img.logo { height: 62px; }
-    header .tagline { font-size: 0.95rem; color: #3A7A5A; }
+    header .tagline { font-size: 0.95rem; color: var(--tagline); }
 
-    /* ── Main ───────────────────────────────────────── */
-    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .header-actions { margin-left: auto; display: flex; gap: 0.6rem; align-items: center; }
 
-    /* ── Search ─────────────────────────────────────── */
-    .search-row { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; }
-
-    input[type="text"] {
+    /* ── Conversation transcript ────────────────────── */
+    #chat {
       flex: 1;
-      padding: 0.8rem 1.1rem;
-      border-radius: 8px;
-      border: 1.5px solid var(--border);
-      background: #fefefe;
-      color: var(--text);
-      font-size: 1rem;
-      outline: none;
-      transition: border-color 0.18s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      overflow-y: auto;
+      padding: 2rem 1.5rem;
     }
-    input[type="text"]:focus { border-color: var(--green-mid); }
-    input[type="text"]::placeholder { color: #9ABFB0; }
+    .chat-inner { max-width: 1100px; margin: 0 auto; }
 
-    #btn {
+    .empty-state {
+      color: var(--muted);
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.95rem;
+      line-height: 1.9;
+    }
+    .empty-state strong { color: var(--green-dark); display: block; font-size: 1.1rem; margin-bottom: 0.6rem; }
+    .empty-state .examples { font-style: italic; color: var(--muted); }
+
+    /* ── Messages ───────────────────────────────────── */
+    .msg { margin-bottom: 1.6rem; display: flex; }
+    .msg.user { justify-content: flex-end; }
+    .msg.assistant { justify-content: flex-start; }
+
+    .bubble-user {
+      background: var(--user-bubble);
+      color: var(--user-text);
+      padding: 0.7rem 1.1rem;
+      border-radius: 14px 14px 4px 14px;
+      max-width: 75%;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+
+    .bubble-assistant {
+      background: var(--asst-bubble);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green-mid);
+      border-radius: 4px 14px 14px 14px;
+      padding: 1rem 1.2rem;
+      max-width: 92%;
+      width: 92%;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+
+    /* ── Status / spinner ───────────────────────────── */
+    .status {
+      font-size: 0.85rem; color: var(--muted);
       display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.8rem 1.6rem; border-radius: 8px; border: none;
-      background: var(--green-dark); color: #fff;
-      font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: background 0.18s; white-space: nowrap;
     }
-    #btn:hover:not(:disabled) { background: var(--green-mid); }
-    #btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
-
     .spinner {
-      display: inline-block; width: 15px; height: 15px;
-      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid var(--border); border-top-color: var(--green-mid);
       border-radius: 50%; animation: spin 0.65s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    #status {
-      font-size: 0.85rem; color: var(--muted);
-      margin-bottom: 1.25rem; min-height: 1.3rem;
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-
-    /* ── Error ──────────────────────────────────────── */
+    /* ── Error / info ───────────────────────────────── */
     .error-box {
-      background: #FFF0F0; border: 1px solid #E08080;
+      background: var(--err-bg); border: 1px solid var(--err-border);
       border-radius: 8px; padding: 0.9rem 1.1rem;
-      color: #8B2020; margin-bottom: 1.5rem; font-size: 0.9rem;
+      color: var(--err-text); font-size: 0.9rem;
     }
-
-    /* ── Info (e.g. 0 results) ──────────────────────── */
     .info-box {
-      background: #FFF8E8; border: 1px solid #E8C878;
+      background: var(--info-bg); border: 1px solid var(--info-border);
       border-radius: 8px; padding: 0.9rem 1.1rem;
-      color: #7A5A10; margin-bottom: 1.5rem; font-size: 0.9rem;
+      color: var(--info-text); font-size: 0.9rem; margin-top: 1rem;
     }
 
-    /* ── Reset conversation ─────────────────────────── */
-    #btn-reset {
-      margin-left: auto;
+    /* ── Header buttons ─────────────────────────────── */
+    #btn-reset, #btn-theme {
       padding: 0.45rem 0.9rem; border-radius: 7px;
       border: 1.5px solid var(--border);
-      background: #fff; color: var(--green-dark);
+      background: var(--surface); color: var(--green-dark);
       font-size: 0.8rem; font-weight: 600;
       cursor: pointer; transition: background 0.15s, border-color 0.15s;
       white-space: nowrap;
     }
-    #btn-reset:hover { background: #EDF5F1; border-color: var(--green-mid); }
+    #btn-reset:hover, #btn-theme:hover { background: var(--btn-soft); border-color: var(--green-mid); }
 
     /* ── Section label ──────────────────────────────── */
     .section-label {
@@ -112,16 +187,13 @@
     .section-label span { color: var(--green-mid); }
 
     /* ── MQL block ──────────────────────────────────── */
-    .mql-section { margin-bottom: 2rem; }
-
+    .mql-section { margin-bottom: 1.25rem; }
     .mql-header {
       display: flex; align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.55rem;
+      justify-content: space-between; margin-bottom: 0.55rem;
     }
-
-    #mql-tree {
-      background: #F4FAF7;
+    .mql-tree {
+      background: var(--code-bg);
       border: 1px solid var(--border);
       border-left: 3px solid var(--green-dark);
       border-radius: 8px;
@@ -133,22 +205,19 @@
       white-space: pre;
       margin: 0;
     }
-
-    #btn-copy {
+    .btn-copy {
       display: flex; align-items: center; gap: 0.35rem;
       padding: 0.3rem 0.75rem; border-radius: 6px;
       border: 1.5px solid var(--border);
-      background: #fff; color: var(--green-dark);
+      background: var(--surface); color: var(--green-dark);
       font-size: 0.78rem; font-weight: 600;
       cursor: pointer; transition: background 0.15s, border-color 0.15s;
       white-space: nowrap;
     }
-    #btn-copy:hover { background: #EDF5F1; border-color: var(--green-mid); }
-    #btn-copy.copied { color: var(--green-mid); border-color: var(--green-mid); }
+    .btn-copy:hover { background: var(--btn-soft); border-color: var(--green-mid); }
+    .btn-copy.copied { color: var(--green-mid); border-color: var(--green-mid); }
 
     /* ── Results table ──────────────────────────────── */
-    .results-section { margin-bottom: 2rem; }
-
     .table-wrap {
       overflow-x: auto;
       border: 1px solid var(--border);
@@ -156,7 +225,7 @@
     }
     table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
     th {
-      background: #EDF5F1; color: var(--green-dark);
+      background: var(--th-bg); color: var(--green-dark);
       font-weight: 600; text-align: left;
       padding: 0.6rem 0.85rem;
       border-bottom: 2px solid var(--border);
@@ -164,15 +233,50 @@
     }
     td {
       padding: 0.5rem 0.85rem;
-      border-bottom: 1px solid #EAF3EE;
+      border-bottom: 1px solid var(--td-line);
       vertical-align: top;
       max-width: 260px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #F4FAF7; }
-
+    tr:hover td { background: var(--row-hover); }
     .no-results { color: var(--muted); font-style: italic; padding: 0.75rem; display: block; }
+
+    /* ── Composer (input pinned at bottom) ──────────── */
+    footer.composer {
+      flex: none;
+      border-top: 2px solid var(--header-line);
+      background: var(--surface);
+      padding: 1rem 1.5rem;
+    }
+    .composer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; gap: 0.6rem;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 0.8rem 1.1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.18s;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+    input[type="text"]:focus { border-color: var(--green-mid); }
+    input[type="text"]::placeholder { color: var(--placeholder); }
+
+    #btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.8rem 1.6rem; border-radius: 8px; border: none;
+      background: var(--green-dark); color: #fff;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.18s; white-space: nowrap;
+    }
+    #btn:hover:not(:disabled) { background: var(--green-mid); }
+    #btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
 
     .hidden { display: none !important; }
   </style>
@@ -182,11 +286,24 @@
   <header>
     <img class="logo" src="/static/MongoMind_logo.png" alt="MongoMind" />
     <div class="tagline">Asistente de Inteligencia NoSQL</div>
-    <button id="btn-reset" onclick="resetConversation()" title="Olvidar el contexto de la conversación">&#8635; Nueva conversación</button>
+    <div class="header-actions">
+      <button id="btn-theme" onclick="toggleTheme()" title="Cambiar tema claro/oscuro"></button>
+      <button id="btn-reset" onclick="resetConversation()" title="Olvidar el contexto de la conversación">&#8635; Nueva conversación</button>
+    </div>
   </header>
 
-  <main>
-    <div class="search-row">
+  <div id="chat">
+    <div class="chat-inner" id="chat-inner">
+      <div class="empty-state" id="empty-state">
+        <strong>¡Hola! Soy MongoMind.</strong>
+        Pregúntame en lenguaje natural y traduciré tu pregunta a MongoDB.
+        <div class="examples">«¿Cuáles son las películas de Scorsese con mejor rating IMDB?»</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="composer">
+    <div class="composer-inner">
       <input id="question" type="text"
              placeholder="¿Cuáles son las películas de Scorsese con mejor rating IMDB?"
              autocomplete="off" />
@@ -195,91 +312,163 @@
         <span id="btn-label">Consultar</span>
       </button>
     </div>
-
-    <div id="status" class="hidden"></div>
-    <div id="error-box" class="error-box hidden"></div>
-    <div id="info-box" class="info-box hidden"></div>
-
-    <div id="mql-section" class="mql-section hidden">
-      <div class="mql-header">
-        <div class="section-label">MQL generado &mdash; colección: <span id="collection-name"></span></div>
-        <button id="btn-copy" onclick="copyMQL()">&#10697; Copiar</button>
-      </div>
-      <pre id="mql-tree"></pre>
-    </div>
-
-    <div id="results-section" class="results-section hidden">
-      <div class="section-label" id="results-label">Resultados</div>
-      <div class="table-wrap">
-        <table>
-          <thead id="table-head"></thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
+  </footer>
 
   <script>
-    const input = document.getElementById('question');
+    const input     = document.getElementById('question');
+    const chat      = document.getElementById('chat');
+    const chatInner = document.getElementById('chat-inner');
+    let busy = false;
+
     input.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(); });
 
-    function show(id) { document.getElementById(id).classList.remove('hidden'); }
-    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+    /* ── Theme toggle ───────────────────────────────── */
+
+    function applyThemeLabel() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // Show the icon for the theme you'd switch TO.
+      document.getElementById('btn-theme').innerHTML = dark ? '&#9728; Claro' : '&#9789; Oscuro';
+    }
+
+    function toggleTheme() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const next = dark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('mm-theme', next); } catch (e) {}
+      applyThemeLabel();
+    }
+
+    applyThemeLabel();
+
+    /* ── Helpers ────────────────────────────────────── */
 
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
                       .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    function setError(msg) {
-      const el = document.getElementById('error-box');
-      msg ? (el.textContent = msg, el.classList.remove('hidden'))
-          : el.classList.add('hidden');
+    function scrollToBottom() { chat.scrollTop = chat.scrollHeight; }
+
+    function hideEmptyState() {
+      const e = document.getElementById('empty-state');
+      if (e) e.remove();
     }
 
-    function setInfo(msg) {
-      const el = document.getElementById('info-box');
-      msg ? (el.textContent = msg, el.classList.remove('hidden'))
-          : el.classList.add('hidden');
+    /* ── Build message bubbles ──────────────────────── */
+
+    function appendUser(text) {
+      hideEmptyState();
+      const row = document.createElement('div');
+      row.className = 'msg user';
+      const b = document.createElement('div');
+      b.className = 'bubble-user';
+      b.textContent = text;
+      row.appendChild(b);
+      chatInner.appendChild(row);
+      scrollToBottom();
+    }
+
+    // Returns the assistant bubble element (with a pending spinner) so it can be filled in.
+    function appendAssistantPending() {
+      const row = document.createElement('div');
+      row.className = 'msg assistant';
+      const b = document.createElement('div');
+      b.className = 'bubble-assistant';
+      b.innerHTML = '<div class="status"><span class="spinner"></span> Generando consulta MQL…</div>';
+      row.appendChild(b);
+      chatInner.appendChild(row);
+      scrollToBottom();
+      return b;
+    }
+
+    function fillAssistant(bubble, data) {
+      bubble.innerHTML = '';
+
+      if (data.error) {
+        const err = document.createElement('div');
+        err.className = 'error-box';
+        err.textContent = data.error;
+        bubble.appendChild(err);
+        scrollToBottom();
+        return;
+      }
+
+      // ── MQL section ──
+      const mqlSection = document.createElement('div');
+      mqlSection.className = 'mql-section';
+
+      const mqlHeader = document.createElement('div');
+      mqlHeader.className = 'mql-header';
+
+      const label = document.createElement('div');
+      label.className = 'section-label';
+      label.innerHTML = 'MQL generado &mdash; colección: <span>' + esc(data.collection) + '</span>';
+
+      const mqlText = formatMQL(JSON.parse(data.mql));
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'btn-copy';
+      copyBtn.innerHTML = '&#10697; Copiar';
+      copyBtn.onclick = () => copyMQL(copyBtn, mqlText);
+
+      mqlHeader.appendChild(label);
+      mqlHeader.appendChild(copyBtn);
+
+      const pre = document.createElement('pre');
+      pre.className = 'mql-tree';
+      pre.textContent = mqlText;
+
+      mqlSection.appendChild(mqlHeader);
+      mqlSection.appendChild(pre);
+      bubble.appendChild(mqlSection);
+
+      // ── Results section ──
+      const resLabel = document.createElement('div');
+      resLabel.className = 'section-label';
+      resLabel.textContent = 'Resultados (' + (data.results ? data.results.length : 0) + ')';
+      bubble.appendChild(resLabel);
+      bubble.appendChild(buildTable(data.results));
+
+      // ── Info (e.g. 0 results) ──
+      if (data.message) {
+        const info = document.createElement('div');
+        info.className = 'info-box';
+        info.textContent = data.message;
+        bubble.appendChild(info);
+      }
+
+      scrollToBottom();
+    }
+
+    /* ── Busy / reset ───────────────────────────────── */
+
+    function setBusy(b) {
+      busy = b;
+      document.getElementById('btn').disabled = b;
+      document.getElementById('btn-icon').outerHTML = b
+        ? '<span id="btn-icon" class="spinner"></span>'
+        : '<span id="btn-icon">&#9654;</span>';
+      document.getElementById('btn-label').textContent = b ? 'Procesando…' : 'Consultar';
     }
 
     async function resetConversation() {
       try { await fetch('/reset', { method: 'POST' }); } catch (e) {}
-      setError(null); setInfo(null);
-      hide('mql-section'); hide('results-section');
+      chatInner.innerHTML =
+        '<div class="empty-state" id="empty-state">' +
+        '<strong>Conversación reiniciada.</strong>' +
+        'El contexto anterior se ha olvidado. Empieza una nueva pregunta.' +
+        '</div>';
       input.value = '';
-      const s = document.getElementById('status');
-      s.textContent = 'Conversación reiniciada — el contexto anterior se ha olvidado.';
-      s.classList.remove('hidden');
-      setTimeout(() => s.classList.add('hidden'), 2500);
-    }
-
-    function setBusy(busy) {
-      document.getElementById('btn').disabled = busy;
-      if (busy) {
-        document.getElementById('btn-icon').outerHTML =
-          '<span id="btn-icon" class="spinner"></span>';
-        document.getElementById('btn-label').textContent = 'Procesando…';
-        const s = document.getElementById('status');
-        s.textContent = 'Generando consulta MQL…';
-        s.classList.remove('hidden');
-      } else {
-        document.getElementById('btn-icon').outerHTML =
-          '<span id="btn-icon">&#9654;</span>';
-        document.getElementById('btn-label').textContent = 'Consultar';
-        document.getElementById('status').classList.add('hidden');
-      }
+      input.focus();
     }
 
     async function runQuery() {
       const question = input.value.trim();
-      if (!question) return;
+      if (!question || busy) return;
 
+      input.value = '';
+      appendUser(question);
+      const bubble = appendAssistantPending();
       setBusy(true);
-      setError(null);
-      setInfo(null);
-      hide('mql-section');
-      hide('results-section');
 
       try {
         const res = await fetch('/query', {
@@ -288,29 +477,17 @@
           body: JSON.stringify({ question }),
         });
         const data = await res.json();
-
-        if (data.error) {
-          setError(data.error);
-        } else {
-          document.getElementById('collection-name').textContent = data.collection;
-          renderMQLTree(JSON.parse(data.mql));
-          show('mql-section');
-          renderTable(data.results);
-          show('results-section');
-          if (data.message) setInfo(data.message);
-        }
+        fillAssistant(bubble, data);
       } catch (err) {
-        setError('Error de conexión: ' + err.message);
+        fillAssistant(bubble, { error: 'Error de conexión: ' + err.message });
       } finally {
         setBusy(false);
+        input.focus();
       }
     }
 
-    /* ── MQL flat block ─────────────────────────────── */
+    /* ── MQL formatting ─────────────────────────────── */
 
-    let _currentMQL = '';
-
-    // Compact one-line serializer with spaces after ':' and ',' (JSON-style).
     function compactJSON(v) {
       if (v === null) return 'null';
       if (Array.isArray(v)) return '[' + v.map(compactJSON).join(', ') + ']';
@@ -322,12 +499,6 @@
       return JSON.stringify(v);
     }
 
-    // Pretty MQL: one pipeline stage (or one filter field) per line, nested
-    // objects kept inline.  e.g.
-    //   [
-    //     {"$match": {"directors": "Christopher Nolan"}},
-    //     {"$project": {"title": 1, "_id": 0}}
-    //   ]
     function formatMQL(mql) {
       if (Array.isArray(mql)) {
         if (!mql.length) return '[]';
@@ -343,15 +514,9 @@
       return compactJSON(mql);
     }
 
-    function renderMQLTree(mql) {
-      _currentMQL = formatMQL(mql);
-      document.getElementById('mql-tree').textContent = _currentMQL;
-    }
-
-    function copyMQL() {
-      if (!_currentMQL) return;
-      navigator.clipboard.writeText(_currentMQL).then(() => {
-        const btn = document.getElementById('btn-copy');
+    function copyMQL(btn, text) {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
         btn.classList.add('copied');
         btn.textContent = '✓ Copiado';
         setTimeout(() => {
@@ -361,7 +526,7 @@
       });
     }
 
-    /* ── Results flat table ─────────────────────────── */
+    /* ── Results table ──────────────────────────────── */
 
     function flattenDoc(doc, prefix) {
       prefix = prefix || '';
@@ -383,31 +548,28 @@
       return String(v);
     }
 
-    function renderTable(docs) {
-      const head  = document.getElementById('table-head');
-      const body  = document.getElementById('table-body');
-      const label = document.getElementById('results-label');
-      head.innerHTML = '';
-      body.innerHTML = '';
+    function buildTable(docs) {
+      const wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
 
       if (!docs || !docs.length) {
-        body.innerHTML = '<tr><td><span class="no-results">Sin resultados.</span></td></tr>';
-        label.textContent = 'Resultados (0)';
-        return;
+        wrap.innerHTML = '<span class="no-results">Sin resultados.</span>';
+        return wrap;
       }
 
       const flat = docs.map(d => flattenDoc(d));
       const cols = [...new Set(flat.flatMap(r => Object.keys(r)))];
 
-      head.innerHTML = '<tr>' + cols.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>';
-      body.innerHTML = flat.map(row =>
+      const thead = '<tr>' + cols.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>';
+      const tbody = flat.map(row =>
         '<tr>' + cols.map(c => {
           const t = cellText(row[c]);
           return '<td title="' + esc(t) + '">' + esc(t) + '</td>';
         }).join('') + '</tr>'
       ).join('');
 
-      label.textContent = 'Resultados (' + docs.length + ')';
+      wrap.innerHTML = '<table><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table>';
+      return wrap;
     }
   </script>
 

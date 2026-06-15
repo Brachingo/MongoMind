@@ -10,7 +10,12 @@ load_dotenv()
 TEMPLATES_DIR = Path(__file__).parent.parent / "prompts" / "templates"
 SCHEMAS_DIR = Path(__file__).parent.parent.parent / "data" / "schemas"
 
-_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+_DEFAULT_MODEL = "llama3.2"
+
+
+def _model() -> str:
+    """Active Ollama model, read at call time so eval can switch it via OLLAMA_MODEL."""
+    return os.getenv("OLLAMA_MODEL", _DEFAULT_MODEL)
 
 _WRITE_OPS = {
     "$out", "$merge",
@@ -233,7 +238,7 @@ def generate(
 
     messages = _build_messages(question, collection, history)
     response = ollama.chat(
-        model=_MODEL,
+        model=_model(),
         messages=messages,
         options={"temperature": 0.1},
     )
