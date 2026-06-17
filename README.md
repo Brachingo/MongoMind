@@ -19,6 +19,10 @@ El sistema está diseñado para eliminar la dependencia de perfiles técnicos en
 
 ## ¿Por qué MongoDB Atlas?
 
+<p align="center">
+  <img src="images/mongoDB_logo.png" alt="MongoDB logo" width="280"/>
+</p>
+
 MongoDB Atlas es el servicio cloud oficial de MongoDB. Se usa en este proyecto por tres razones concretas:
 
 - **Dataset de referencia listo para usar** — Atlas ofrece `sample_mflix`, un dataset público de películas con relaciones entre colecciones (`movies`, `comments`, `users`), ideal para cubrir todos los tipos de query que queremos evaluar.
