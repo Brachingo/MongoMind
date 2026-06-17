@@ -1,4 +1,4 @@
-"""Unit tests for the eval comparison logic — no Ollama/Atlas needed."""
+"""Tests de la lógica de comparación de eval — sin Ollama ni Atlas."""
 import sys
 sys.path.insert(0, ".")
 from tests.eval import (
@@ -45,7 +45,7 @@ class TestCount:
         assert ok is True
 
     def test_count_match_model_returned_docs(self):
-        # Model returned the documents instead of a count -> len equals the count.
+        # El modelo devolvió los documentos en vez de un conteo -> len == el conteo.
         expected = [{"total": 3}]
         actual = [{"title": "A"}, {"title": "B"}, {"title": "C"}]
         ok, _ = functional_match("count", expected, actual)

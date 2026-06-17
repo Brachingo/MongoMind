@@ -1,4 +1,4 @@
-"""Tests for db_connector against the live sample_mflix Atlas cluster."""
+"""Tests de db_connector contra el cluster real sample_mflix de Atlas."""
 import pytest
 from src.core.db_connector import execute_query, close
 

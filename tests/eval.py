@@ -37,8 +37,8 @@ sys.path.insert(0, ".")
 BENCHMARK_PATH = Path(__file__).parent.parent / "data" / "benchmark" / "movies_benchmark.json"
 RESULTS_DIR = Path(__file__).parent.parent / "data" / "benchmark"
 
-# Higher than the app's default cap so most result sets are not truncated,
-# which would make set comparison unreliable. Both queries use the same limit.
+# Más alto que el tope de la app para que casi ningún resultado se corte (lo que
+# haría poco fiable la comparación de conjuntos). Ambas queries usan el mismo límite.
 EVAL_LIMIT = 1000
 _FLOAT_REL_TOL = 1e-3
 

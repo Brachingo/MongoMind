@@ -1,11 +1,12 @@
 """
-Query logger — appends one JSON line per executed query to logs/queries.log.
+Log de queries: escribe una línea JSON por cada query ejecutada en
+logs/queries.log.
 
-Each record captures the question, the generated MQL, the target collection,
-the number of results (or the error), and a UTC timestamp. This gives an audit
-trail for security review and a raw dataset for later error analysis.
+Cada registro guarda la pregunta, el MQL generado, la colección, el número de
+resultados (o el error) y la marca de tiempo en UTC. Sirve como traza de
+auditoría para revisar seguridad y como material en bruto para analizar errores.
 
-The log file can be redirected via the QUERY_LOG_FILE env variable (used in tests).
+La ruta del log se puede cambiar con la variable QUERY_LOG_FILE (lo usan los tests).
 """
 import json
 import os
@@ -16,7 +17,7 @@ DEFAULT_LOG_FILE = Path(__file__).parent.parent.parent / "logs" / "queries.log"
 
 
 def _log_path() -> Path:
-    """Return the active log file path (overridable via QUERY_LOG_FILE)."""
+    """Ruta del log activa (se puede sobreescribir con QUERY_LOG_FILE)."""
     override = os.getenv("QUERY_LOG_FILE")
     return Path(override) if override else DEFAULT_LOG_FILE
 
@@ -29,10 +30,10 @@ def log_query(
     error: str | None = None,
     client: str | None = None,
 ) -> None:
-    """Append a structured record of one query execution to the log file.
+    """Añade al log un registro estructurado de una ejecución de query.
 
-    Logging never raises: a logging failure must not break the user request,
-    so any I/O error is swallowed (best-effort audit trail).
+    El logging nunca lanza: que falle el log no puede tumbar la petición del
+    usuario, así que me trago cualquier error de E/S (auditoría best-effort).
     """
     record = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -50,5 +51,5 @@ def log_query(
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(line + "\n")
     except OSError:
-        # Best-effort: never let logging break the request path.
+        # Best-effort: que el log no rompa nunca el flujo de la petición.
         pass

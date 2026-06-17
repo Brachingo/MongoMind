@@ -1,4 +1,4 @@
-"""Unit tests for the query logger — writes to a temp file via QUERY_LOG_FILE."""
+"""Tests del log de queries — escribe en un fichero temporal vía QUERY_LOG_FILE."""
 import sys
 sys.path.insert(0, ".")
 import json
@@ -8,7 +8,7 @@ import importlib
 def _fresh_logger(tmp_path, monkeypatch):
     log_file = tmp_path / "queries.log"
     monkeypatch.setenv("QUERY_LOG_FILE", str(log_file))
-    # Reimport so the module picks up the env var through _log_path().
+    # Reimporto para que el módulo coja la variable de entorno vía _log_path().
     from src.core import query_logger
     importlib.reload(query_logger)
     return query_logger, log_file
@@ -38,8 +38,8 @@ def test_appends_multiple_records(tmp_path, monkeypatch):
 
 
 def test_logging_never_raises_on_bad_path(tmp_path, monkeypatch):
-    # A regular file stands where a directory is expected, so mkdir/open fails;
-    # log_query must swallow the OSError instead of breaking the request.
+    # Pongo un fichero donde se espera un directorio, así mkdir/open fallan;
+    # log_query debe tragarse el OSError en vez de romper la petición.
     blocker = tmp_path / "blocker"
     blocker.write_text("i am a file, not a directory")
     monkeypatch.setenv("QUERY_LOG_FILE", str(blocker / "queries.log"))

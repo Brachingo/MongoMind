@@ -1,4 +1,4 @@
-"""Unit tests for the sliding-window rate limiter — time is injected, no real clock."""
+"""Tests del rate limiter de ventana deslizante — se inyecta el tiempo, sin reloj real."""
 import sys
 sys.path.insert(0, ".")
 from src.web.rate_limit import RateLimiter

@@ -1,10 +1,10 @@
 """
-Integration tests for the FastAPI layer using TestClient.
+Tests de integración de la capa FastAPI con TestClient.
 
-The LLM (Ollama) and MongoDB (Atlas) are monkeypatched, so these tests run
-offline and deterministically. They verify the Day 11/12 wiring:
-session-based conversational memory, rate limiting, input sanitization,
-and the 0-results-vs-error distinction.
+El LLM (Ollama) y MongoDB (Atlas) están monkeypatcheados, así que estos tests
+corren offline y de forma determinista. Comprueban el cableado de los Días 11/12:
+memoria conversacional por sesión, rate limiting, sanitización de la entrada y
+la distinción entre 0 resultados y error.
 """
 import sys
 sys.path.insert(0, ".")
@@ -18,9 +18,9 @@ from src.web.rate_limit import RateLimiter
 
 @pytest.fixture
 def client(monkeypatch, tmp_path):
-    # Redirect the query log to a temp file so tests don't touch the real log.
+    # Redirijo el log de queries a un fichero temporal para no tocar el real.
     monkeypatch.setenv("QUERY_LOG_FILE", str(tmp_path / "queries.log"))
-    # Fake LLM: echoes the collection so we can assert on it; records history seen.
+    # LLM falso: devuelve la colección para poder comprobarla; anota el historial visto.
     calls = {"history": []}
 
     def fake_generate(question, collection, history=None, database=None):
@@ -29,14 +29,14 @@ def client(monkeypatch, tmp_path):
         return {"q": question, "col": collection}
 
     def fake_execute(collection, query, limit=100, database=None):
-        # Return a non-empty result unless the question asks for "empty".
+        # Devuelve un resultado no vacío salvo que la pregunta pida "vacio".
         if "vacio" in json.dumps(query, ensure_ascii=False):
             return []
         return [{"title": "Doc", "collection": collection}]
 
     monkeypatch.setattr(webapp.mql_generator, "generate", fake_generate)
     monkeypatch.setattr(webapp.db_connector, "execute_query", fake_execute)
-    # Fresh session store + generous rate limiter per test.
+    # Sesiones limpias + rate limiter holgado en cada test.
     webapp._SESSIONS.clear()
     webapp._rate_limiter = RateLimiter(max_requests=100, window_seconds=60)
     c = TestClient(webapp.app)
@@ -65,7 +65,7 @@ def test_empty_input_is_rejected(client):
 
 
 def test_zero_results_sets_message_not_error(client):
-    # "vacio" makes the fake DB return [] -> info message, not error.
+    # "vacio" hace que la BD falsa devuelva [] -> mensaje informativo, no error.
     r = client.post("/query", json={"question": "buscar vacio total"})
     body = r.json()
     assert body["error"] is None
@@ -76,9 +76,9 @@ def test_zero_results_sets_message_not_error(client):
 def test_conversational_memory_grows_across_turns(client):
     client.post("/query", json={"question": "películas de accion"})
     client.post("/query", json={"question": "¿y ordenadas por año?"})
-    # The 2nd generate() call must have received the 1st exchange as history.
+    # La 2ª llamada a generate() debe haber recibido el 1er intercambio como historial.
     second_call_history = client._calls["history"][1]
-    assert len(second_call_history) == 2  # user + assistant from turn 1
+    assert len(second_call_history) == 2  # usuario + asistente del turno 1
     assert "películas de accion" in second_call_history[0]["content"]
 
 
@@ -86,12 +86,12 @@ def test_reset_clears_memory(client):
     client.post("/query", json={"question": "películas de accion"})
     client.post("/reset")
     client.post("/query", json={"question": "otra cosa cualquiera"})
-    # After reset, the latest generate() call sees empty history again.
+    # Tras el reset, la última llamada a generate() ve el historial vacío de nuevo.
     assert client._calls["history"][-1] == []
 
 
 def test_dataset_selection_routes_to_its_database(client):
-    # Selecting sample_airbnb must run against that database and route to its collection.
+    # Elegir sample_airbnb debe ejecutar contra esa BD y enrutar a su colección.
     r = client.post("/query", json={"question": "alojamientos baratos",
                                      "dataset": "sample_airbnb"})
     body = r.json()
@@ -113,7 +113,7 @@ def test_switching_dataset_clears_memory(client):
                                 "dataset": "sample_mflix"})
     client.post("/query", json={"question": "alojamientos en Madrid",
                                 "dataset": "sample_airbnb"})
-    # The airbnb call must NOT have seen the mflix exchange as history.
+    # La llamada de airbnb NO debe haber visto el intercambio de mflix como historial.
     assert client._calls["history"][-1] == []
 
 

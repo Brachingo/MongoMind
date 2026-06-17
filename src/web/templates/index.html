@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MongoMind</title>
   <script>
-    // Apply saved theme before first paint to avoid a flash.
+    // Aplico el tema guardado antes del primer pintado para evitar el parpadeo.
     (function () {
       try {
         const t = localStorage.getItem('mm-theme');
@@ -344,7 +344,7 @@
     const datasetSel = document.getElementById('dataset');
     let busy = false;
 
-    // Restore last chosen dataset across reloads.
+    // Recupero el último dataset elegido entre recargas.
     try {
       const ds = localStorage.getItem('mm-dataset');
       if (ds) datasetSel.value = ds;
@@ -352,11 +352,11 @@
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(); });
 
-    /* ── Theme toggle ───────────────────────────────── */
+    /* ── Cambio de tema ─────────────────────────────── */
 
     function applyThemeLabel() {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-      // Show the icon for the theme you'd switch TO.
+      // Muestro el icono del tema al que cambiarías.
       document.getElementById('btn-theme').innerHTML = dark ? '&#9728; Claro' : '&#9789; Oscuro';
     }
 
@@ -398,7 +398,7 @@
       scrollToBottom();
     }
 
-    // Returns the assistant bubble element (with a pending spinner) so it can be filled in.
+    // Devuelve la burbuja del asistente (con el spinner) para rellenarla luego.
     function appendAssistantPending() {
       const row = document.createElement('div');
       row.className = 'msg assistant';
@@ -492,8 +492,8 @@
       input.focus();
     }
 
-    // Switching dataset starts a fresh conversation (the server also clears the
-    // server-side memory on the next query, since cross-dataset anaphora is invalid).
+    // Cambiar de dataset empieza una conversación nueva (el servidor también
+    // limpia su memoria en la siguiente query: la anáfora entre datasets no vale).
     async function onDatasetChange() {
       try { localStorage.setItem('mm-dataset', datasetSel.value); } catch (e) {}
       try { await fetch('/reset', { method: 'POST' }); } catch (e) {}

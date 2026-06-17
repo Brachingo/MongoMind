@@ -1,10 +1,10 @@
 """
-Input sanitization — clean and validate the user's natural language question
-before it is incorporated into the LLM prompt.
+Sanitización de entrada: limpia y valida la pregunta del usuario antes de
+meterla en el prompt del LLM.
 
-This is a defence-in-depth measure: the question becomes part of the prompt
-sent to the model, so we strip control characters, collapse whitespace and
-enforce a length bound to limit prompt-injection surface and runaway inputs.
+Es una medida de defensa en profundidad: como la pregunta acaba dentro del
+prompt, quito caracteres de control, colapso espacios y acoto la longitud para
+reducir la superficie de inyección de prompts y los inputs desbocados.
 """
 import re
 import unicodedata
@@ -12,22 +12,17 @@ import unicodedata
 MAX_QUESTION_LENGTH = 500
 MIN_QUESTION_LENGTH = 2
 
-# Control characters (except common whitespace) are stripped outright.
+# Los caracteres de control (salvo los espacios habituales) se eliminan sin más.
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _WHITESPACE = re.compile(r"\s+")
 
 
 def sanitize_question(question: str) -> str:
-    """Return a cleaned question or raise ValueError if it is not usable.
+    """Devuelve la pregunta ya limpia, o lanza ValueError si no sirve.
 
-    Steps:
-      1. Reject non-string / empty input.
-      2. Normalise Unicode (NFC) so look-alike characters collapse.
-      3. Strip control characters and collapse runs of whitespace.
-      4. Enforce min/max length bounds.
-
-    Raises:
-        ValueError: the question is empty, too short, or too long.
+    Pasos: rechazar lo que no sea texto o esté vacío; normalizar Unicode (NFC)
+    para que los caracteres parecidos colapsen; quitar caracteres de control y
+    colapsar espacios; y comprobar los límites de longitud.
     """
     if not isinstance(question, str):
         raise ValueError("La pregunta debe ser texto.")

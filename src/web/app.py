@@ -3,7 +3,7 @@ import sys
 import uuid
 from pathlib import Path
 
-# Ensure project root is in sys.path when running as a script
+# Para que la raíz del proyecto esté en sys.path al lanzarlo como script
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import os
@@ -24,7 +24,7 @@ from src.web.rate_limit import RateLimiter
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 IMAGES_DIR    = Path(__file__).resolve().parent.parent.parent / "images"
 
-# Conversational memory: keep the last N exchanges (user + assistant pairs).
+# Memoria conversacional: guardo los últimos N intercambios (par usuario + asistente).
 HISTORY_WINDOW = 5
 SESSION_COOKIE = "mm_session"
 
@@ -33,16 +33,16 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 app = FastAPI(title="MongoMind")
 app.mount("/static", StaticFiles(directory=IMAGES_DIR), name="static")
 
-# Rate limit: max 20 queries per minute per client IP.
+# Límite de 20 consultas por minuto por IP de cliente.
 _rate_limiter = RateLimiter(max_requests=20, window_seconds=60.0)
 
-# In-memory session store: session_id -> {"history": list[dict], "collection": str}
+# Sesiones en memoria: session_id -> {"history": list[dict], "collection": str}
 _SESSIONS: dict[str, dict] = {}
 
 
 class QueryRequest(BaseModel):
     question: str
-    dataset: str | None = None   # one of datasets.dataset_keys(); None -> default
+    dataset: str | None = None   # una de datasets.dataset_keys(); None -> por defecto
 
 
 class QueryResponse(BaseModel):
@@ -50,17 +50,17 @@ class QueryResponse(BaseModel):
     results: list[dict]
     collection: str
     dataset: str = ""
-    message: str | None = None   # info (e.g. 0 results), not an error
+    message: str | None = None   # info (p.ej. 0 resultados), no es un error
     error: str | None = None
 
 
 def _to_serializable(docs: list[dict]) -> list[dict]:
-    """Convert pymongo documents to JSON-safe dicts (handles datetime, Decimal128, etc.)."""
+    """Pasa los documentos de pymongo a dicts seguros para JSON (datetime, Decimal128, etc.)."""
     return json.loads(json.dumps(docs, default=str))
 
 
 def _client_id(request: Request) -> str:
-    """Best-effort client identifier for rate limiting / logging."""
+    """Identificador de cliente (best-effort) para el rate limit y el log."""
     return request.client.host if request.client else "unknown"
 
 
@@ -69,7 +69,7 @@ def _new_session() -> dict:
 
 
 def _get_session(session_id: str | None) -> tuple[str, dict]:
-    """Return (session_id, session) creating a fresh session when needed."""
+    """Devuelve (session_id, session) y crea una sesión nueva si hace falta."""
     if session_id and session_id in _SESSIONS:
         return session_id, _SESSIONS[session_id]
     new_id = session_id or uuid.uuid4().hex
@@ -87,7 +87,7 @@ async def index(request: Request) -> HTMLResponse:
 
 @app.post("/reset")
 def reset(request: Request) -> JSONResponse:
-    """Clear the conversational memory for the current session."""
+    """Borra la memoria conversacional de la sesión actual."""
     session_id = request.cookies.get(SESSION_COOKIE)
     if session_id and session_id in _SESSIONS:
         _SESSIONS[session_id] = _new_session()
@@ -96,7 +96,7 @@ def reset(request: Request) -> JSONResponse:
 
 @app.post("/query", response_model=QueryResponse)
 def query(body: QueryRequest, request: Request, response: Response) -> QueryResponse:
-    """Translate a natural language question to MQL, execute it, and return results."""
+    """Traduce la pregunta a MQL, la ejecuta y devuelve los resultados."""
     client = _client_id(request)
 
     # ── Rate limiting ────────────────────────────────────────────────────────
@@ -108,13 +108,13 @@ def query(body: QueryRequest, request: Request, response: Response) -> QueryResp
             error=f"Demasiadas consultas. Inténtalo de nuevo en {retry} s.",
         )
 
-    # ── Session / conversational memory ──────────────────────────────────────
+    # ── Sesión / memoria conversacional ──────────────────────────────────────
     session_id, session = _get_session(request.cookies.get(SESSION_COOKIE))
     response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
 
-    # ── Dataset selection ────────────────────────────────────────────────────
-    # Validate against the known registry; switching dataset clears the memory
-    # since anaphora across datasets ("¿y ordenadas por año?") makes no sense.
+    # ── Selección de dataset ─────────────────────────────────────────────────
+    # Lo valido contra el registro conocido; al cambiar de dataset borro la
+    # memoria, porque la anáfora entre datasets ("¿y ordenadas por año?") no vale.
     dataset = datasets.resolve(body.dataset)
     if dataset != session.get("dataset"):
         session["history"], session["collection"] = [], None
@@ -124,7 +124,7 @@ def query(body: QueryRequest, request: Request, response: Response) -> QueryResp
     collection = ""
     mql_query: dict | list | None = None
     try:
-        # ── Input sanitization ───────────────────────────────────────────────
+        # ── Sanitización de la entrada ───────────────────────────────────────
         question = sanitize_question(body.question)
 
         collection = nlp.detect_collection(question, previous=session["collection"],
@@ -134,7 +134,7 @@ def query(body: QueryRequest, request: Request, response: Response) -> QueryResp
         raw_results = db_connector.execute_query(collection, mql_query, database=db_name)
         results = _to_serializable(raw_results)
 
-        # Update conversational memory (trim to the last HISTORY_WINDOW exchanges).
+        # Actualizo la memoria (me quedo solo con los últimos HISTORY_WINDOW intercambios).
         session["collection"] = collection
         session["history"].extend(mql_generator.history_turns(question, mql_query))
         del session["history"][: -2 * HISTORY_WINDOW]
@@ -142,7 +142,7 @@ def query(body: QueryRequest, request: Request, response: Response) -> QueryResp
         query_logger.log_query(question, collection, mql_query,
                                result_count=len(results), client=client)
 
-        # Distinguish "ran fine but empty" from a real error.
+        # Distingo "se ejecutó bien pero vacío" de un error real.
         message = None
         if not results:
             message = "La consulta se ejecutó correctamente, pero no devolvió resultados."

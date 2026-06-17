@@ -1,4 +1,4 @@
-"""Unit tests for input sanitization — no external dependencies."""
+"""Tests de la sanitización de entrada — sin dependencias externas."""
 import sys
 sys.path.insert(0, ".")
 import pytest

@@ -1,4 +1,4 @@
-"""Unit tests for mql_generator helpers — no model inference required."""
+"""Tests de los helpers de mql_generator — sin inferencia del modelo."""
 import sys
 sys.path.insert(0, ".")
 import json

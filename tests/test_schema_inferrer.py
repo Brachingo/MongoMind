@@ -1,4 +1,4 @@
-"""Unit tests for schema_inferrer — no MongoDB connection required."""
+"""Tests de schema_inferrer — sin necesidad de conexión a MongoDB."""
 import sys
 sys.path.insert(0, ".")
 import json
@@ -49,7 +49,7 @@ class TestInferFieldScalar:
         assert "values" not in r
 
     def test_optional_flag_when_sparse(self):
-        # Only 5 of 20 docs have this field
+        # Solo 5 de 20 documentos tienen este campo
         r = _infer_field(["a", "b", "c", "d", "e"], total_docs=20)
         assert r.get("optional") is True
 

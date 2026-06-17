@@ -1,4 +1,4 @@
-"""Unit tests for collection detection, including conversational context."""
+"""Tests de la detección de colección, incluyendo el contexto conversacional."""
 import sys
 sys.path.insert(0, ".")
 from src.core.nlp import detect_collection
@@ -23,11 +23,11 @@ class TestKeywordDetection:
 
 class TestConversationalContext:
     def test_follow_up_reuses_previous(self):
-        # No keyword in the follow-up -> stay on the previous collection.
+        # Sin keyword en el follow-up -> se queda en la colección previa.
         assert detect_collection("¿y solo las de 2010?", previous="comments") == "comments"
 
     def test_keyword_overrides_previous(self):
-        # Explicit keyword wins over the previous collection.
+        # Una keyword explícita gana sobre la colección previa.
         assert detect_collection("ahora los comentarios", previous="movies") == "comments"
 
     def test_no_previous_falls_back_to_default(self):

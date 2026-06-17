@@ -1,10 +1,10 @@
 """
-In-memory sliding-window rate limiter (no external dependency).
+Rate limiter de ventana deslizante en memoria (sin dependencias externas).
 
-Keyed by client identifier (IP). Each client may issue at most *max_requests*
-within *window_seconds*; further requests are rejected until the window slides
-forward. The logic is pure and time-injectable so it can be unit-tested without
-FastAPI or real clocks.
+Indexado por identificador de cliente (IP). Cada cliente puede hacer como mucho
+*max_requests* en *window_seconds*; el resto se rechaza hasta que la ventana
+avanza. La lógica es pura y se le puede inyectar el reloj, así que se testea sin
+FastAPI ni relojes reales.
 """
 import threading
 import time
@@ -22,7 +22,7 @@ class RateLimiter:
         self._lock = threading.Lock()
 
     def allow(self, client: str) -> bool:
-        """Register a request from *client*; return True if within the limit."""
+        """Registra una petición de *client*; devuelve True si está dentro del límite."""
         now = self._clock()
         cutoff = now - self.window_seconds
         with self._lock:
@@ -35,7 +35,7 @@ class RateLimiter:
             return True
 
     def retry_after(self, client: str) -> float:
-        """Seconds until *client*'s oldest hit leaves the window (0 if free)."""
+        """Segundos hasta que la petición más antigua de *client* salga de la ventana (0 si hay hueco)."""
         with self._lock:
             hits = self._hits[client]
             if len(hits) < self.max_requests or not hits:

@@ -66,14 +66,53 @@ cp .env.example .env   # añadir MONGODB_URI
 
 ## Uso
 
+Una vez hecha la instalación, sigue estos pasos para usar la herramienta.
+
+**1. Arranca Ollama y descarga el modelo** (el LLM corre en local, sin API key):
+
 ```bash
-# Interfaz web
+ollama serve            # deja el servidor escuchando en localhost:11434
+ollama pull llama3.2
+```
+
+**2. Prepara MongoDB Atlas** (gratis, tier M0):
+
+- Crea un cluster M0 en [Atlas](https://www.mongodb.com/atlas).
+- En el cluster, *Load Sample Dataset* (crea `sample_mflix` y el resto de `sample_*`).
+- Crea un usuario de base de datos de **solo lectura** (rol `readAnyDatabase`) —
+  es un requisito de seguridad: la herramienta nunca escribe en la base.
+- Añade tu IP en *Network Access*.
+- Copia la cadena de conexión en *Connect → Drivers*.
+
+**3. Configura el `.env`** con tu cadena de conexión:
+
+```bash
+MONGODB_URI=mongodb+srv://USUARIO:PASSWORD@CLUSTER.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB_NAME=sample_mflix
+OLLAMA_MODEL=llama3.2
+```
+
+**4. Lanza la aplicación:**
+
+```bash
 python src/web/app.py   # http://localhost:8000
 ```
 
-En la cabecera de la web puedes elegir el **dataset** sobre el que consultar
-(`sample_mflix`, `sample_airbnb`, `sample_analytics`). El registro de datasets
-está en `src/core/datasets.py`.
+**5. Haz preguntas** en lenguaje natural. En la cabecera puedes elegir el
+**dataset** (`sample_mflix`, `sample_airbnb`, `sample_analytics`). La web muestra
+siempre el MQL generado junto a los resultados. Algunos ejemplos:
+
+- *Las 10 películas con mayor puntuación IMDb*
+- *¿Cuál es la duración media de las películas de acción?*
+- *Movies directed by Christopher Nolan*
+- *Los 10 alojamientos más caros* (dataset `sample_airbnb`)
+
+> **¿Algo no responde?** Comprueba que Ollama está corriendo (`ollama serve`) y
+> que el modelo está descargado (`ollama list`); que tu IP está permitida en
+> Atlas; y que `MONGODB_URI`/`MONGODB_DB_NAME` del `.env` son correctos.
+
+Verificación rápida (opcional): `pytest` ejecuta la batería de tests sin red, y
+`python tests/demo.py` lanza 10 preguntas de extremo a extremo (necesita Ollama + Atlas).
 
 ## Datasets adicionales (multi-dataset)
 
@@ -97,10 +136,10 @@ python scripts/load_sample_datasets.py --drop     # recrea las colecciones
 El script clona automáticamente un mirror público de los datos (NDJSON) e
 inserta vía PyMongo. Tras cargar, vuelve a dejar la conexión en solo lectura.
 
-Verifica la carga:
+Verifica la carga (la demo incluye preguntas sobre airbnb y analytics):
 
 ```bash
-python tests/multi_dataset_test.py   # requiere Ollama + Atlas
+python tests/demo.py   # requiere Ollama + Atlas
 ```
 
 ## Docker
@@ -161,21 +200,6 @@ pytest                                  # 150 tests
 
 # Integración (requieren Atlas / Ollama) — se lanzan con python:
 python tests/verify_benchmark.py        # 65 queries de referencia contra Atlas
-python tests/multi_dataset_test.py      # airbnb / analytics end-to-end
-python tests/smoke_test.py              # smoke end-to-end sobre movies
+python tests/demo.py                    # demo de defensa: 10 preguntas end-to-end
+python tests/eval.py --split test       # evaluación funcional sobre el benchmark
 ```
-
-## Estado actual
-
-- [x] Entorno y conexión a MongoDB Atlas verificada
-- [x] `db_connector.py` — find y aggregate con límite de seguridad
-- [x] Esquemas + plantillas few-shot (`movies`, `listingsAndReviews`, `accounts`, `customers`, `transactions`)
-- [x] `mql_generator.py` — generación MQL vía Ollama (`llama3.2`, local)
-- [x] `nlp.py` + `datasets.py` — detección de colección y soporte multi-dataset
-- [x] `schema_inferrer.py` — inferencia dinámica de esquema desde documentos reales
-- [x] Pipeline end-to-end `nlp → mql_generator → db_connector`
-- [x] Memoria conversacional, rate limiting, sanitización y log de queries
-- [x] Interfaz web FastAPI con selector de dataset
-- [x] Benchmark (65 pares) + evaluación funcional + comparativa de modelos
-- [x] Despliegue con Docker / Docker Compose
-- [ ] Memoria del TFM y demo (Día 21)

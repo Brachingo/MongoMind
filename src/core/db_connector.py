@@ -14,7 +14,7 @@ def _get_client() -> MongoClient:
     if _client is None:
         uri = os.getenv("MONGODB_URI")
         if not uri:
-            raise ValueError("MONGODB_URI not set in environment")
+            raise ValueError("Falta MONGODB_URI en el entorno")
         _client = MongoClient(
             uri,
             serverSelectionTimeoutMS=10000,
@@ -29,23 +29,13 @@ def execute_query(
     limit: int = 100,
     database: str | None = None,
 ) -> list[dict]:
-    """Run a read-only query against MongoDB.
+    """Ejecuta una consulta de solo lectura contra MongoDB.
 
-    Args:
-        collection: Collection name within the target database.
-        query: A filter dict  → runs find(query)
-               A pipeline list → runs aggregate(query)
-        limit: Max documents returned (guards against accidental full scans).
-        database: Target database name. Defaults to MONGODB_DB_NAME (sample_mflix),
-            so existing single-dataset callers are unaffected.
-
-    Returns:
-        List of documents with '_id' removed.
-
-    Raises:
-        ValueError: If query type is invalid.
-        ConnectionFailure: If Atlas is unreachable.
-        OperationFailure: If the query is rejected by MongoDB (bad syntax, auth, etc.).
+    Un dict se trata como filtro (find); una lista, como pipeline (aggregate).
+    Siempre se aplica un $limit como red de seguridad para no barrer la
+    colección entera sin querer. Por defecto va contra MONGODB_DB_NAME
+    (sample_mflix); pasa *database* para apuntar a otro dataset.
+    Devuelve los documentos sin el campo '_id'.
     """
     db_name = database or os.getenv("MONGODB_DB_NAME", "sample_mflix")
     db = _get_client()[db_name]
@@ -53,18 +43,18 @@ def execute_query(
 
     try:
         if isinstance(query, list):
-            # Aggregation pipeline — append $limit as a safety guard
+            # Pipeline de agregación: añado el $limit al final como tope de seguridad
             pipeline = query + [{"$limit": limit}]
             cursor = col.aggregate(pipeline)
         elif isinstance(query, dict):
             cursor = col.find(query, {"_id": 0}, limit=limit)
         else:
-            raise ValueError(f"query must be a dict (find) or list (aggregate), got {type(query)}")
+            raise ValueError(f"La query debe ser un dict (find) o una lista (aggregate), no {type(query)}")
 
         return list(cursor)
 
     except (OperationFailure, PyMongoError) as exc:
-        raise OperationFailure(f"Query execution failed on '{collection}': {exc}") from exc
+        raise OperationFailure(f"Fallo al ejecutar la query en '{collection}': {exc}") from exc
 
 
 def close() -> None:
