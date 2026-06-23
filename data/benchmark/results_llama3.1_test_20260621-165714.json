@@ -1,0 +1,701 @@
+{
+  "model": "llama3.1",
+  "split": "test",
+  "collection": "movies",
+  "timestamp": "2026-06-21T16:57:14",
+  "n_pairs": 19,
+  "eval_limit": 1000,
+  "metrics": {
+    "functional_accuracy": 0.684,
+    "exact_match": 0.474,
+    "execution_error_rate": 0.053,
+    "partial_correctness": 0.787,
+    "avg_latency_s": 4.86,
+    "n": 19
+  },
+  "by_complexity": {
+    "simple": {
+      "n": 5,
+      "functional_accuracy": 1.0
+    },
+    "media": {
+      "n": 7,
+      "functional_accuracy": 0.571
+    },
+    "alta": {
+      "n": 5,
+      "functional_accuracy": 0.6
+    },
+    "ambiguous": {
+      "n": 2,
+      "functional_accuracy": 0.5
+    }
+  },
+  "items": [
+    {
+      "id": "s03",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Movies directed by Christopher Nolan",
+      "expected_mql": {
+        "directors": "Christopher Nolan"
+      },
+      "generated_mql": {
+        "directors": "Christopher Nolan"
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 30.97,
+      "n_expected": 9,
+      "n_actual": 9
+    },
+    {
+      "id": "s07",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Movies from the USA",
+      "expected_mql": {
+        "countries": "USA"
+      },
+      "generated_mql": {
+        "countries": "USA"
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.02,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s12",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas de terror",
+      "expected_mql": {
+        "genres": "Horror"
+      },
+      "generated_mql": {
+        "genres": "Horror"
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.13,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s16",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas clasificadas R del género Crime",
+      "expected_mql": {
+        "rated": "R",
+        "genres": "Crime"
+      },
+      "generated_mql": {
+        "rated": "R",
+        "genres": "Crime"
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.53,
+      "n_expected": 1000,
+      "n_actual": 1000
+    },
+    {
+      "id": "s19",
+      "complexity": "simple",
+      "result_type": "documents",
+      "question": "Películas dirigidas por Quentin Tarantino",
+      "expected_mql": {
+        "directors": "Quentin Tarantino"
+      },
+      "generated_mql": {
+        "directors": "Quentin Tarantino"
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.47,
+      "n_expected": 14,
+      "n_actual": 14
+    },
+    {
+      "id": "m02",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Find movies with runtime greater than 180 minutes",
+      "expected_mql": {
+        "runtime": {
+          "$gt": 180
+        }
+      },
+      "generated_mql": {
+        "runtime": {
+          "$gt": 180
+        }
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.47,
+      "n_expected": 321,
+      "n_actual": 321
+    },
+    {
+      "id": "m08",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Movies whose title contains the word love",
+      "expected_mql": {
+        "title": {
+          "$regex": "love",
+          "$options": "i"
+        }
+      },
+      "generated_mql": {
+        "title": {
+          "$regex": "love",
+          "$options": "i"
+        }
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.75,
+      "n_expected": 404,
+      "n_actual": 404
+    },
+    {
+      "id": "m12",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "The 5 most recent movies",
+      "expected_mql": [
+        {
+          "$match": {
+            "year": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "year": -1
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "title": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": null,
+      "functional": false,
+      "partial": 0.0,
+      "exact": false,
+      "error": "ValueError: La salida del LLM no es JSON válido:\n[\n  {\n    \"$match\": {\n      \"released\": {\n        \"$gte\": ISODate()\n      }\n    }\n  },\n  {\n    \"$sort\": {\n      \"released\":",
+      "latency_s": null,
+      "n_expected": null,
+      "n_actual": null
+    },
+    {
+      "id": "m16",
+      "complexity": "media",
+      "result_type": "count",
+      "question": "¿Cuántas películas hay de género Comedy?",
+      "expected_mql": [
+        {
+          "$match": {
+            "genres": "Comedy"
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "generated_mql": {
+        "genres": "Comedy"
+      },
+      "functional": false,
+      "partial": 0.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.43,
+      "n_expected": 1,
+      "n_actual": 1000
+    },
+    {
+      "id": "m19",
+      "complexity": "media",
+      "result_type": "groups",
+      "question": "¿Cuántas películas hay de cada clasificación?",
+      "expected_mql": [
+        {
+          "$group": {
+            "_id": "$rated",
+            "total": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "total": -1
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$unwind": "$rated"
+        },
+        {
+          "$group": {
+            "_id": "$rated",
+            "total": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "total": -1
+          }
+        }
+      ],
+      "functional": false,
+      "partial": 0.944,
+      "exact": false,
+      "error": null,
+      "latency_s": 3.63,
+      "n_expected": 18,
+      "n_actual": 17
+    },
+    {
+      "id": "m22",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Sci-Fi movies released after 2000",
+      "expected_mql": {
+        "genres": "Sci-Fi",
+        "year": {
+          "$gt": 2000
+        }
+      },
+      "generated_mql": {
+        "genres": "Sci-Fi",
+        "year": {
+          "$gt": 2000
+        }
+      },
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 1.97,
+      "n_expected": 499,
+      "n_actual": 499
+    },
+    {
+      "id": "m25",
+      "complexity": "media",
+      "result_type": "documents",
+      "question": "Las 10 películas con más premios ganados",
+      "expected_mql": [
+        {
+          "$match": {
+            "awards.wins": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "awards.wins": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "awards.wins": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "awards.wins": {
+              "$exists": true,
+              "$type": "int"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "awards.wins": -1
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "title": 1,
+            "awards.wins": 1,
+            "year": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 6.53,
+      "n_expected": 10,
+      "n_actual": 10
+    },
+    {
+      "id": "a02",
+      "complexity": "alta",
+      "result_type": "groups",
+      "question": "Los 5 directores con más películas",
+      "expected_mql": [
+        {
+          "$unwind": "$directors"
+        },
+        {
+          "$group": {
+            "_id": "$directors",
+            "num_peliculas": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "num_peliculas": -1
+          }
+        },
+        {
+          "$limit": 5
+        }
+      ],
+      "generated_mql": [
+        {
+          "$unwind": "$directors"
+        },
+        {
+          "$group": {
+            "_id": "$directors",
+            "num_peliculas": {
+              "$sum": 1
+            }
+          }
+        },
+        {
+          "$sort": {
+            "num_peliculas": -1
+          }
+        },
+        {
+          "$limit": 5
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": true,
+      "error": null,
+      "latency_s": 5.04,
+      "n_expected": 5,
+      "n_actual": 5
+    },
+    {
+      "id": "a05",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "How many comments does the movie The Dark Knight have?",
+      "expected_mql": [
+        {
+          "$match": {
+            "title": "The Dark Knight"
+          }
+        },
+        {
+          "$lookup": {
+            "from": "comments",
+            "localField": "_id",
+            "foreignField": "movie_id",
+            "as": "comentarios"
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "num_comentarios": {
+              "$size": "$comentarios"
+            },
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "title": "The Dark Knight"
+          }
+        },
+        {
+          "$lookup": {
+            "from": "comments",
+            "localField": "_id",
+            "foreignField": "movie_id",
+            "as": "comentarios"
+          }
+        },
+        {
+          "$project": {
+            "title": 1,
+            "num_comentarios": {
+              "$size": "$comentarios"
+            },
+            "_id": 0
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "functional": false,
+      "partial": 0.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 7.53,
+      "n_expected": 1,
+      "n_actual": 1
+    },
+    {
+      "id": "a09",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "Películas que son a la vez de Action y Adventure",
+      "expected_mql": {
+        "genres": {
+          "$all": [
+            "Action",
+            "Adventure"
+          ]
+        }
+      },
+      "generated_mql": {
+        "genres": {
+          "$in": [
+            "Action",
+            "Adventure"
+          ]
+        }
+      },
+      "functional": false,
+      "partial": 0.154,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.9,
+      "n_expected": 728,
+      "n_actual": 1000
+    },
+    {
+      "id": "a13",
+      "complexity": "alta",
+      "result_type": "scalar",
+      "question": "Número total de premios ganados por las películas de Christopher Nolan",
+      "expected_mql": [
+        {
+          "$match": {
+            "directors": "Christopher Nolan"
+          }
+        },
+        {
+          "$group": {
+            "_id": null,
+            "total_premios": {
+              "$sum": "$awards.wins"
+            }
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "directors": "Christopher Nolan"
+          }
+        },
+        {
+          "$unwind": "$awards"
+        },
+        {
+          "$group": {
+            "_id": null,
+            "total_premios": {
+              "$sum": "$awards.wins"
+            }
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 4.84,
+      "n_expected": 1,
+      "n_actual": 1
+    },
+    {
+      "id": "a14",
+      "complexity": "alta",
+      "result_type": "documents",
+      "question": "The 5 best rated movies by critics on Rotten Tomatoes",
+      "expected_mql": [
+        {
+          "$match": {
+            "tomatoes.critic.rating": {
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "tomatoes.critic.rating": -1
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "title": 1,
+            "tomatoes.critic.rating": 1,
+            "_id": 0
+          }
+        }
+      ],
+      "generated_mql": [
+        {
+          "$match": {
+            "tomatoes.critic.rating": {
+              "$gt": 0
+            },
+            "imdb.rating": {
+              "$exists": true,
+              "$type": "number"
+            }
+          }
+        },
+        {
+          "$sort": {
+            "tomatoes.critic.rating": -1
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "imdb.rating": 1,
+            "year": 1,
+            "tomatoes.critic.rating": 1
+          }
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 10.08,
+      "n_expected": 5,
+      "n_actual": 5
+    },
+    {
+      "id": "x02",
+      "complexity": "ambiguous",
+      "result_type": "count",
+      "question": "cuantas peliculas dirijio Tarantino?",
+      "expected_mql": [
+        {
+          "$match": {
+            "directors": "Quentin Tarantino"
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "generated_mql": [
+        {
+          "$unwind": "$directors"
+        },
+        {
+          "$match": {
+            "directors": "Quentin Tarantino"
+          }
+        },
+        {
+          "$count": "total"
+        }
+      ],
+      "functional": true,
+      "partial": 1.0,
+      "exact": false,
+      "error": null,
+      "latency_s": 3.28,
+      "n_expected": 1,
+      "n_actual": 1
+    },
+    {
+      "id": "x04",
+      "complexity": "ambiguous",
+      "result_type": "documents",
+      "question": "recent horrror movies",
+      "expected_mql": {
+        "genres": "Horror",
+        "year": {
+          "$gte": 2010
+        }
+      },
+      "generated_mql": {
+        "genres": "Horror",
+        "year": {
+          "$gt": 2010
+        }
+      },
+      "functional": false,
+      "partial": 0.854,
+      "exact": false,
+      "error": null,
+      "latency_s": 1.89,
+      "n_expected": 362,
+      "n_actual": 307
+    }
+  ]
+}
