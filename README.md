@@ -5,7 +5,7 @@
 
 # MongoMind — Asistente de Inteligencia NoSQL
 
-TFM — Máster de Formación Permanente en Deep Learning, Universidad Politécnica de Madrid (2025/26)
+TFM - Máster en Deep Learning, Universidad Politécnica de Madrid (2025/26)
 
 **Autor:** Lucas Silva Pérez &nbsp;·&nbsp; **Director:** Alejandro Martín
 
