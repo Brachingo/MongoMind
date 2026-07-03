@@ -163,7 +163,7 @@ src/
   core/        # db_connector · mql_generator · nlp · schema_inferrer · datasets
   web/         # FastAPI app + templates HTML
   prompts/     # plantillas few-shot por colección (movies.txt, …)
-data/
+data/          # En este caso los archivos correspondientes estan fuera de la carpeta
   schemas/     # esquemas JSON de colecciones (movies.json, …)
   benchmark/   # pares (pregunta NL, MQL esperado) para evaluación
 scripts/       # utilidades (load_sample_datasets.py)
