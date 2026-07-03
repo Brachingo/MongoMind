@@ -30,11 +30,7 @@ def log_query(
     error: str | None = None,
     client: str | None = None,
 ) -> None:
-    """Añade al log un registro estructurado de una ejecución de query.
-
-    El logging nunca lanza: que falle el log no puede tumbar la petición del
-    usuario, así que me trago cualquier error de E/S (auditoría best-effort).
-    """
+    
     record = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "client": client,

@@ -27,14 +27,17 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FIG_DIR = os.path.join(ROOT, "data", "figures")
 
-# Paleta coherente con plots.py
-C_INPUT = "#F3A712"     # entrada / usuario
-C_CORE = "#2E86AB"      # módulos del core
-C_LLM = "#8E7DBE"       # LLM
-C_DB = "#3BB273"        # base de datos
-C_SEC = "#C5283D"       # seguridad
-C_OUT = "#5A6472"       # salida
-C_NEUTRAL = "#9AA0A6"
+# Paleta categórica validada (skill dataviz — references/palette.md), asignada
+# por rol semántico y comprobada con scripts/validate_palette.js (light, #ffffff):
+# CVD peor-caso adyacente ΔE 25.0, contraste OK salvo C_DB (WARN, mitigado por
+# las etiquetas de texto directas que ya lleva cada caja).
+C_INPUT = "#eb6834"     # naranja — entrada / usuario
+C_CORE = "#2a78d6"      # azul — módulos del core
+C_LLM = "#4a3aa7"       # violeta — LLM
+C_DB = "#1baf7a"        # aqua — base de datos
+C_SEC = "#e34948"       # rojo — seguridad
+C_OUT = "#52514e"       # gris oscuro (ink secundario) — salida
+C_NEUTRAL = "#898781"   # gris (ink muted) — neutral
 
 plt.rcParams.update({"savefig.dpi": 150, "font.size": 10})
 
@@ -342,8 +345,57 @@ def diagram_eval():
 
 
 # --------------------------------------------------------------------------- #
+# 6. Fundamentos del LLM: Transformer + few-shot (in-context learning)
+# --------------------------------------------------------------------------- #
+def diagram_llm_fewshot():
+    fig, ax = _new_ax(13, 7)
+    title(ax, "El LLM en MongoMind: Transformer + few-shot (in-context learning)")
+
+    # Entradas que componen el contexto (prompt)
+    b_schema = box(ax, 16, 80, 26, 11,
+                   "Esquema de la colección\n(estático o inferido)", C_DB,
+                   fontsize=8.5)
+    b_shots = box(ax, 16, 60, 26, 11,
+                  "Ejemplos few-shot\nNL → MQL (8–10 verificados)", C_CORE,
+                  fontsize=8.5)
+    b_q = box(ax, 16, 40, 26, 11, "Pregunta del usuario\n(ES / EN)", C_INPUT,
+              fontsize=8.5)
+    ax.text(16, 92, "CONTEXTO (prompt)", ha="center", fontsize=9,
+            fontweight="bold", color="#444")
+
+    # El modelo: Transformer
+    b_llm = box(ax, 53, 60, 28, 40,
+                "LLM (Transformer)\n\n· tokenización\n· atención (self-attention)\n"
+                "· N capas apiladas\n· predicción autoregresiva\n"
+                "  del siguiente token", C_LLM, fontsize=9.5, style="round")
+
+    for b in (b_schema, b_shots, b_q):
+        arrow(ax, right(b), (b_llm[0] - b_llm[2] / 2, b[1]), rad=0.0)
+
+    # Salida
+    b_out = box(ax, 87, 60, 20, 14, "MQL generado\n(JSON: find /\naggregation)", C_OUT,
+                fontsize=9)
+    arrow(ax, right(b_llm), left(b_out), label="token a token", label_pos=0.55)
+
+    # Pesos congelados
+    ax.text(53, 33, "pesos del modelo CONGELADOS", ha="center", fontsize=8.5,
+            fontweight="bold", color=C_SEC,
+            bbox=dict(boxstyle="round,pad=0.3", fc="#FBE9E7", ec=C_SEC))
+
+    # Mensaje clave
+    ax.text(50, 12,
+            "In-context learning: el modelo se adapta a la colección a partir de los "
+            "ejemplos del propio prompt,\nSIN reentrenamiento. La salida es un muestreo "
+            "probabilístico → hay que validarla y repararla.",
+            ha="center", fontsize=8.5, style="italic", color="#444",
+            bbox=dict(boxstyle="round,pad=0.4", fc="#EEF3F7", ec=C_CORE))
+
+    save(fig, "diag_06_llm_fewshot.png")
+
+
+# --------------------------------------------------------------------------- #
 ALL = [diagram_pipeline, diagram_seguridad, diagram_prompt,
-       diagram_routing, diagram_eval]
+       diagram_routing, diagram_eval, diagram_llm_fewshot]
 
 
 def main():

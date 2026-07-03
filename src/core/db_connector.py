@@ -29,14 +29,7 @@ def execute_query(
     limit: int = 100,
     database: str | None = None,
 ) -> list[dict]:
-    """Ejecuta una consulta de solo lectura contra MongoDB.
-
-    Un dict se trata como filtro (find); una lista, como pipeline (aggregate).
-    Siempre se aplica un $limit como red de seguridad para no barrer la
-    colección entera sin querer. Por defecto va contra MONGODB_DB_NAME
-    (sample_mflix); pasa *database* para apuntar a otro dataset.
-    Devuelve los documentos sin el campo '_id'.
-    """
+    
     db_name = database or os.getenv("MONGODB_DB_NAME", "sample_mflix")
     db = _get_client()[db_name]
     col = db[collection]

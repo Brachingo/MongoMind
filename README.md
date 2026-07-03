@@ -13,17 +13,17 @@ TFM — Máster de Formación Permanente en Deep Learning, Universidad Politécn
 
 ## ¿Qué es MongoMind?
 
-MongoMind es un asistente conversacional que permite a analistas de datos consultar bases de datos MongoDB en lenguaje natural, sin escribir una sola línea de MQL. El usuario formula su pregunta en español o inglés; MongoMind la traduce automáticamente a una query MongoDB, la ejecuta y devuelve los resultados de forma comprensible.
+MongoMind es un asistente conversacional para consultar bases de datos MongoDB en lenguaje natural, sin escribir MQL. El usuario pregunta en español o inglés, MongoMind traduce la pregunta a una query MongoDB, la ejecuta y devuelve los resultados.
 
-El sistema está diseñado para eliminar la dependencia de perfiles técnicos en el ciclo de análisis de datos: cualquier analista puede obtener respuestas de una base de datos NoSQL compleja con la misma naturalidad con la que haría una pregunta.
+La idea es quitar al perfil técnico del medio en las consultas del día a día: un analista puede preguntarle a la base de datos directamente, sin depender de que alguien le escriba la query.
 
 ## ¿Por qué MongoDB Atlas?
 
-MongoDB Atlas es el servicio cloud oficial de MongoDB. Se usa en este proyecto por tres razones concretas:
+Atlas es el servicio cloud oficial de MongoDB. Se usa aquí por tres motivos:
 
-- **Dataset de referencia listo para usar** — Atlas ofrece `sample_mflix`, un dataset público de películas con relaciones entre colecciones (`movies`, `comments`, `users`), ideal para cubrir todos los tipos de query que queremos evaluar.
-- **Sin infraestructura local** — el tier gratuito (M0) permite desarrollar y evaluar el sistema sin gestionar instancias propias, lo que reduce la fricción durante el desarrollo del TFM.
-- **Entorno realista** — las restricciones de red, autenticación y TLS de Atlas simulan las condiciones de un despliegue real, lo que hace que el sistema sea directamente transferible a producción.
+- **Dataset de referencia ya cargado** — Atlas trae `sample_mflix`, un dataset público de películas con relaciones entre colecciones (`movies`, `comments`, `users`) que cubre todos los tipos de query que queremos evaluar.
+- **Sin infraestructura local** — el tier gratuito (M0) basta para desarrollar y evaluar sin montar instancias propias.
+- **Condiciones realistas** — la red, la autenticación y el TLS de Atlas son los de un despliegue real, así que lo que funciona aquí funciona en producción.
 
 ## Arquitectura
 
@@ -66,7 +66,7 @@ cp .env.example .env   # añadir MONGODB_URI
 
 ## Uso
 
-Una vez hecha la instalación, sigue estos pasos para usar la herramienta.
+Con la instalación hecha, estos son los pasos.
 
 **1. Arranca Ollama y descarga el modelo** (el LLM corre en local, sin API key):
 
@@ -79,8 +79,8 @@ ollama pull llama3.2
 
 - Crea un cluster M0 en [Atlas](https://www.mongodb.com/atlas).
 - En el cluster, *Load Sample Dataset* (crea `sample_mflix` y el resto de `sample_*`).
-- Crea un usuario de base de datos de **solo lectura** (rol `readAnyDatabase`) —
-  es un requisito de seguridad: la herramienta nunca escribe en la base.
+- Crea un usuario de base de datos de **solo lectura** (rol `readAnyDatabase`).
+  Es un requisito de seguridad: la herramienta nunca escribe en la base.
 - Añade tu IP en *Network Access*.
 - Copia la cadena de conexión en *Connect → Drivers*.
 
@@ -116,7 +116,7 @@ Verificación rápida (opcional): `pytest` ejecuta la batería de tests sin red,
 
 ## Datasets adicionales (multi-dataset)
 
-`sample_mflix` ya cubre la evaluación principal. Para probar la generalización a
+`sample_mflix` cubre la evaluación principal. Para probar la generalización a
 otras bases de datos, MongoMind soporta también `sample_airbnb` y
 `sample_analytics`. Hay dos formas de cargarlos en tu cluster:
 
@@ -133,8 +133,8 @@ python scripts/load_sample_datasets.py            # clona el mirror y carga ambo
 python scripts/load_sample_datasets.py --drop     # recrea las colecciones
 ```
 
-El script clona automáticamente un mirror público de los datos (NDJSON) e
-inserta vía PyMongo. Tras cargar, vuelve a dejar la conexión en solo lectura.
+El script clona un mirror público de los datos (NDJSON) e inserta vía PyMongo.
+Tras cargar, vuelve a dejar la conexión en solo lectura.
 
 Verifica la carga (la demo incluye preguntas sobre airbnb y analytics):
 
@@ -174,8 +174,8 @@ tests/
 
 El benchmark (`data/benchmark/movies_benchmark.json`) tiene **65 pares** (pregunta NL,
 MQL de referencia) sobre `movies`, con split **70/30 dev/test**. La métrica es la
-**corrección funcional** (se ejecutan ambas queries y se comparan los resultados, no el
-texto), tolerante a proyección, orden y nombres de campo.
+**corrección funcional**: se ejecutan ambas queries y se comparan los resultados, no el
+texto, con tolerancia a proyección, orden y nombres de campo.
 
 ```bash
 python tests/eval.py --split test --model llama3.2   # evalúa y exporta JSON
@@ -186,11 +186,12 @@ python tests/compare_results.py --split test         # tabla comparativa de mode
 
 | Modelo | Funcional | Exact match | Tasa error | Latencia |
 |---|---|---|---|---|
-| llama3.1 (8B) | 68.4% | 52.6% | 0.0% | 4.37s |
+| llama3.1 (8B) | 68.4% | 47.4% | 5.3% | 4.86s |
 | llama3.2 (3B) | 73.7% | 15.8% | 10.5% | 1.27s |
 
-> La mejora de few-shots del análisis de errores (sobre el split **dev**) elevó a `llama3.2`
-> de 63.2% → **73.7%** funcional en el split test (holdout), confirmando que generaliza.
+> Refinar los few-shots a partir del análisis de errores (sobre el split **dev**)
+> subió a `llama3.2` de 63.2% a **73.7%** funcional en el split test (holdout). La mejora
+> también se ve en el material que no se tocó, así que generaliza.
 
 ## Tests
 

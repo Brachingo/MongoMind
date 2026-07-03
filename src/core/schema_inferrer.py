@@ -155,13 +155,7 @@ def _safe_example(v: Any) -> Any:
 
 def infer(collection: str, n: int = _DEFAULT_SAMPLE,
           database: str | None = None) -> dict:
-    """Muestrea n documentos de *collection* y devuelve el esquema inferido.
-
-    *database* elige la base de datos destino (por defecto MONGODB_DB_NAME).
-    El formato de salida es el mismo que el de data/schemas/*.json:
-    {"collection": str, "description": str,
-     "fields": {nombre: {"type": ..., "example": ..., ...}, ...}}
-    """
+    
     from src.core import db_connector  # import local para que el módulo se pueda importar suelto
 
     docs = db_connector.execute_query(

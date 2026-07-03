@@ -18,12 +18,7 @@ _WHITESPACE = re.compile(r"\s+")
 
 
 def sanitize_question(question: str) -> str:
-    """Devuelve la pregunta ya limpia, o lanza ValueError si no sirve.
-
-    Pasos: rechazar lo que no sea texto o esté vacío; normalizar Unicode (NFC)
-    para que los caracteres parecidos colapsen; quitar caracteres de control y
-    colapsar espacios; y comprobar los límites de longitud.
-    """
+    
     if not isinstance(question, str):
         raise ValueError("La pregunta debe ser texto.")
 

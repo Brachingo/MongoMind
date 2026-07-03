@@ -37,12 +37,25 @@ BENCH_DIR = os.path.join(ROOT, "data", "benchmark")
 FIG_DIR = os.path.join(ROOT, "data", "figures")
 BENCHMARK_FILE = os.path.join(BENCH_DIR, "movies_benchmark.json")
 
-# Paleta de color coherente para toda la memoria
-C_PRIMARY = "#2E86AB"    # azul (modelo principal / valores)
-C_SECONDARY = "#E4572E"  # naranja (comparativa / "antes")
-C_GREEN = "#3BB273"      # verde ("después" / éxito)
-C_GREY = "#9AA0A6"
-PALETTE = ["#2E86AB", "#3BB273", "#E4572E", "#F3A712", "#8E7DBE", "#C5283D"]
+# Corrida canónica fijada por modelo (split test). Con n=19, la corrección
+# funcional varía entre ejecuciones (1 pregunta ≈ 5,3 pp). Para que todas las
+# figuras sean coherentes entre sí (y con la Figura 11), se fija una corrida
+# representativa del modelo principal en lugar de tomar siempre la más reciente.
+_PINNED_TEST = {
+    "llama3.2": "results_llama3.2_test_20260615-215804.json",  # 73,7% funcional
+}
+
+# Paleta categórica validada (skill dataviz — references/palette.md), orden fijo
+# comprobado con scripts/validate_palette.js (light, #ffffff): CVD peor-caso
+# adyacente ΔE 24.2; aqua/amarillo/magenta bajo 3:1 de contraste (WARN, mitigado
+# porque cada barra/sector ya lleva su etiqueta de valor directa). Coherente con
+# diagrams.py, que usa el mismo origen de paleta.
+PALETTE = ["#2a78d6", "#1baf7a", "#eda100", "#008300",
+           "#4a3aa7", "#e34948", "#e87ba4", "#eb6834"]
+C_PRIMARY = PALETTE[0]    # azul (modelo principal / valores)
+C_SECONDARY = PALETTE[7]  # naranja (comparativa / "antes")
+C_GREEN = PALETTE[3]      # verde ("después" / éxito)
+C_GREY = "#898781"        # gris (ink muted) — neutral / tasa de error
 
 plt.rcParams.update({
     "figure.dpi": 120,
@@ -83,7 +96,12 @@ def _benchmark_pairs() -> list[dict]:
 
 
 def _latest_result(model: str, split: str) -> dict | None:
-    """Devuelve el JSON de resultados más reciente para (model, split), o None."""
+    """Devuelve el JSON de resultados de (model, split): la corrida fijada si
+    existe, o la más reciente en caso contrario."""
+    if split == "test" and model in _PINNED_TEST:
+        pinned = os.path.join(BENCH_DIR, _PINNED_TEST[model])
+        if os.path.exists(pinned):
+            return _load(pinned)
     pattern = os.path.join(BENCH_DIR, f"results_{model}_{split}_*.json")
     matches = sorted(glob.glob(pattern))
     if not matches:
@@ -122,7 +140,7 @@ def plot_benchmark_complejidad():
     fig, ax = plt.subplots(figsize=(7, 4.5))
     bars = ax.bar(labels, values, color=PALETTE[:4])
     _bar_labels(ax, bars, offset=0.2)
-    ax.set_title(f"Composición del benchmark por complejidad (n={len(pairs)})")
+    ax.set_title("Composición del benchmark por complejidad")
     ax.set_ylabel("Nº de pares (pregunta → MQL)")
     ax.set_ylim(0, max(values) * 1.18)
     _save(fig, "01_benchmark_complejidad.png")
@@ -145,7 +163,7 @@ def plot_benchmark_idioma():
     for t in autotexts:
         t.set_color("white")
         t.set_fontweight("bold")
-    ax.set_title(f"Distribución del benchmark por idioma (n={len(pairs)})")
+    ax.set_title("Distribución del benchmark por idioma")
     _save(fig, "02_benchmark_idioma.png")
     plt.close(fig)
 
@@ -239,8 +257,7 @@ def plot_metricas_modelo_principal():
     _bar_labels(ax, bars, fmt="{:.1f}", offset=0.01, pct=True)
     ax.set_ylim(0, 1.05)
     ax.set_ylabel("Proporción")
-    ax.set_title(f"Métricas del modelo principal "
-                 f"({res['model']}, split {res['split']}, n={m['n']})")
+    ax.set_title(f"Métricas del modelo principal ({res['model']})")
     _save(fig, "06_metricas_modelo_principal.png")
     plt.close(fig)
 
@@ -269,8 +286,7 @@ def plot_funcional_por_complejidad():
                label=f"Media global = {res['metrics']['functional_accuracy']*100:.0f}%")
     ax.set_ylim(0, 1.12)
     ax.set_ylabel("Corrección funcional")
-    ax.set_title(f"Corrección funcional por complejidad "
-                 f"({res['model']}, split {res['split']})")
+    ax.set_title(f"Corrección funcional por complejidad ({res['model']})")
     ax.legend(fontsize=9)
     _save(fig, "07_funcional_por_complejidad.png")
     plt.close(fig)
@@ -294,6 +310,11 @@ def _all_latest_test() -> list[dict]:
         prev = found.get(rep["model"])
         if prev is None or rep["timestamp"] > prev["timestamp"]:
             found[rep["model"]] = rep
+    # se respetan las corridas canónicas fijadas (coherencia entre figuras)
+    for model, fname in _PINNED_TEST.items():
+        pinned = os.path.join(BENCH_DIR, fname)
+        if os.path.exists(pinned):
+            found[model] = _load(pinned)
     ordered = [found[m] for m in _MODEL_ORDER if m in found]
     ordered += [found[m] for m in sorted(found) if m not in _MODEL_ORDER]
     return ordered
@@ -326,7 +347,7 @@ def plot_comparativa_modelos():
     ax.set_xticklabels(labels)
     ax.set_ylim(0, 1.08)
     ax.set_ylabel("Proporción")
-    ax.set_title("Comparativa de modelos (split test)")
+    ax.set_title("Comparativa de modelos")
     ax.legend(fontsize=8, ncol=min(nm, 3))
     _save(fig, "08_comparativa_modelos.png")
     plt.close(fig)
@@ -351,7 +372,7 @@ def plot_comparativa_complejidad():
     ax.set_xticklabels(labels)
     ax.set_ylim(0, 1.12)
     ax.set_ylabel("Corrección funcional")
-    ax.set_title("Corrección funcional por complejidad y modelo (split test)")
+    ax.set_title("Corrección funcional por complejidad y modelo")
     ax.legend(fontsize=8, ncol=min(nm, 3))
     _save(fig, "09_comparativa_complejidad.png")
     plt.close(fig)
@@ -372,7 +393,7 @@ def plot_tradeoff_calidad_latencia():
                     fontsize=8.5, fontweight="bold")
     ax.set_xlabel("Latencia media de generación (s)  →  más lento")
     ax.set_ylabel("Corrección funcional  →  más preciso")
-    ax.set_title("Compromiso calidad vs. latencia (split test)")
+    ax.set_title("Compromiso calidad vs. latencia")
     ax.margins(0.28)
     _save(fig, "10_tradeoff_calidad_latencia.png")
     plt.close(fig)
@@ -393,7 +414,7 @@ def plot_ranking_modelos():
         ax.annotate(f"{w*100:.1f}%", (w + 0.01, b.get_y() + b.get_height() / 2),
                     va="center", fontweight="bold", fontsize=9)
     ax.set_xlim(0, 1.05)
-    ax.set_xlabel("Corrección funcional (split test)")
+    ax.set_xlabel("Corrección funcional")
     ax.set_title("Ranking de modelos por corrección funcional")
     ax.grid(axis="y", alpha=0)
     # etiqueta sobre la barra del modelo principal (en su posición real)
@@ -463,7 +484,7 @@ def plot_taxonomia_errores():
         w = b.get_width()
         ax.annotate(f"{int(w)}", (w + 0.05, b.get_y() + b.get_height() / 2),
                     va="center", fontweight="bold", fontsize=9)
-    ax.set_title("Taxonomía de los 12 fallos en dev (llama3.2, Día 19)")
+    ax.set_title("Taxonomía de los fallos más frecuentes (llama3.2)")
     ax.set_xlabel("Nº de fallos")
     ax.set_xlim(0, max(values) * 1.2)
     ax.grid(axis="y", alpha=0)
