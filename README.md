@@ -192,15 +192,3 @@ python tests/compare_results.py --split test         # tabla comparativa de mode
 > Refinar los few-shots a partir del análisis de errores (sobre el split **dev**)
 > subió a `llama3.2` de 63.2% a **73.7%** funcional en el split test (holdout). La mejora
 > también se ve en el material que no se tocó, así que generaliza.
-
-## Tests
-
-```bash
-# Batería unitaria completa (sin Ollama ni Atlas)
-pytest                                  # 150 tests
-
-# Integración (requieren Atlas / Ollama) — se lanzan con python:
-python tests/verify_benchmark.py        # 65 queries de referencia contra Atlas
-python tests/demo.py                    # demo de defensa: 10 preguntas end-to-end
-python tests/eval.py --split test       # evaluación funcional sobre el benchmark
-```
